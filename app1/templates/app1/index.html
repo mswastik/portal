@@ -1,0 +1,9 @@
+{% extends 'ra/base_site.html' %}
+{% load ra_admin_tags ra_tags %}
+
+{% block content %}
+    <div class="col-sm-12">
+        {% get_report base_model='product' report_slug='openso' as ProductSalesMonthly %}
+        {% get_html_panel ProductSalesMonthly %}
+    </div>
+{% endblock %} 

@@ -1,0 +1,17 @@
+{% extends "app1/base.html" %}
+{% load django_tables2 %}
+{% load bootstrap4 %}
+{% block content %}
+    <h2>SO</h2>
+    {% if filter %}
+    <form action="" method="get" class="form form-inline">
+        {% bootstrap_form filter.form layout='inline' size='sm' %}
+        {% bootstrap_button 'Filter' button_type='submit' size='sm' %}
+    </form>
+    {% endif %}
+
+   {% autoescape off %}
+	{{df}}
+	{% endautoescape %}
+
+{% endblock %}

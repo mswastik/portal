@@ -1,0 +1,18 @@
+<!DOCTYPE HTML>
+{% extends "app1/base.html" %}
+{% block content %}
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Capacity Loading</title>
+</head>
+<body>
+  {% if graph %}
+  {{ graph|safe }}
+  {% else %}
+  <p>No graph was provided.</p>
+  {% endif %}
+</body>
+</html>
+{% endblock %}

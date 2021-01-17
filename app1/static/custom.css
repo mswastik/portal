@@ -1,0 +1,12 @@
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.navpills .dropdown-menu {
+	margin-top: -1px;
+}
+.form-unit .select2-container, .form-unit .select2-selection .select2-container--bootstrap {
+    width: 65px !important;
+}
+

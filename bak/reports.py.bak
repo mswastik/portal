@@ -1,0 +1,16 @@
+from django.utils.translation import ugettext_lazy as _
+from ra.reporting.registry import register_report_view
+from ra.reporting.views import ReportView
+from .models import So, Production, Product
+from slick_reporting.fields import BaseReportField
+from django.db.models import Avg,Sum
+
+
+@register_report_view
+class OpenSo(ReportView):
+    report_title = _('Open SO')
+    base_model = Product
+    report_model = So
+    group_by = 'code'
+    columns= ['so__code', BaseReportField.create(Sum,'qty',verbose_name='qty')]
+    #columns= ['code','qty']

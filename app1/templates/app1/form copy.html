@@ -1,0 +1,15 @@
+{% extends "app1/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<div class=".container">
+  <table class="table thead-dark table-striped table-hover table-responsive table-sm">
+  <form action="" class="form-inline" method="post">
+    {% csrf_token %}
+    {% crispy formset helper %}
+  </form>
+</form>
+</table>
+</div>
+{% endblock %}

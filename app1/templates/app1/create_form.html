@@ -1,0 +1,19 @@
+{% extends "app1/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+	{{ formset.media.js }}
+
+	
+<form action="" class="form" method="post">
+    {% csrf_token %}
+	
+   {% crispy formset helper%}
+   
+	
+<script>
+$('.django-select2').djangoSelect2({placeholder:'Select an option        '});
+$('.django-select2').djangoSelect2({dropdownAutoWidth : true});
+$.fn.select2.defaults.set( "theme", "bootstrap" );
+</script>
+
+{% endblock %}

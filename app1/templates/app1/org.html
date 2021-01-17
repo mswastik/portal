@@ -1,0 +1,117 @@
+{% extends "app1/base.html" %}
+{% load bootstrap4 %}
+<html>
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{%static 'orb.css' %}" >
+<script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin></script>
+
+
+<script src="{% static 'react.min133.js' %}" crossorigin></script>
+<script src="{% static 'orb.min.js' %}" crossorigin></script>
+
+<button onclick="refreshData()">Refresh</button>
+    <button onclick="changeTheme()">Theme</button>
+    <a download="orbpivotgrid.xls" href="#" onclick="return exportToExcel(this);">Export to Excel</a>
+    
+    <div id="rr" style="padding: 7px;"></div>
+    <div id="export" style="padding: 7px;"></div>
+
+<script type="text/javascript">
+    const element = React.createElement;
+    function refreshData() {
+        pgridwidget.refreshData({% autoescape off %}
+        {{ df }}
+        {% endautoescape %});
+    }
+
+    function changeTheme() {
+        pgridwidget.changeTheme('bootstrap');
+    }
+
+    function exportToExcel(anchor) {
+        anchor.href = orb.export(pgridwidget);
+        return true;
+    }
+
+    var config = {
+        dataSource: {% autoescape off %}
+        {{ df }}
+        {% endautoescape %},
+        canMoveFields: true, 
+        width: 1299,
+        height: 911,
+        theme: 'green',
+        toolbar: {
+            visible: true
+        },
+        grandTotal: {
+            rowsvisible: false,
+            columnsvisible: false
+        },
+        subTotal: {
+            visible: true,
+            collapsed: true,
+            collapsible: true
+        },
+        rowSettings: {
+            subTotal: {
+                visible: true,
+                collapsed: true,
+                collapsible: true
+            }
+        },
+        columnSettings: {
+            subTotal: {
+                visible: false,
+                collapsed: true,
+                collapsible: true
+            }
+        },
+        fields: [
+            {
+                name: '1',
+                caption: 'SO' },
+            {
+                name: '2',
+                caption: 'SO Date' },
+                {
+                name: '3',
+                caption: 'Delivery Date' ,
+                },
+                {
+                name: '7',
+                caption: 'Actual Dispatch Qty' },
+            {
+                name: '5',
+                caption: 'Qty' },
+                {
+                name: '11',
+                caption: 'Desc' },
+                {
+                name: '9',
+                caption: 'Customer' },
+                {
+                name: '14',
+                caption: 'Category' },
+                {
+                name: '4',
+                caption: 'Code' }
+        ]
+        /*preFilters : {
+            'Class': { 'Matches': 'Regular' },
+            'Manufacturer': { 'Matches': /^a|^c/ },
+            'Category'    : { 'Does Not Match': 'D' },
+           // 'Amount'      : { '>':  40 },
+         //   'Quantity'    : [4, 8, 12]
+        }*/
+    };
+
+var elem = document.getElementById('rr')
+
+var pgridwidget = new orb.pgridwidget(config);
+pgridwidget.render(elem);
+    </script>    
+
+{% endblock %}

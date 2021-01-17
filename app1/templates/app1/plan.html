@@ -1,0 +1,33 @@
+{% extends "app1/base.html" %}
+{% load crispy_forms_tags %}
+{% load bootstrap4 %}
+{% block content %}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<div class=".container">
+  <table class="table thead-dark table-striped table-hover table-responsive table-sm">
+  <form action="" class="form-inline" method="post">
+    {% csrf_token %}
+    {% crispy formset helper %}
+  </form>
+</form>
+</table>
+<nav aria-label="Page navigation">
+    <ol class="pagination justify-content-center">
+        <li class="page-item">
+          {% if object.has_previous %}
+              <a class="page-link" href="?page={{ object.previous_page_number }}">Previous</a>
+          {% endif %}
+        </li>
+        <li class="page-item active"><a class="page-link">
+            Page {{ object.number }} of {{ object.paginator.num_pages }} </a>
+        </li>
+        <li class="page-item">
+          {% if object.has_next %}
+              <a class="page-link" href="?page={{ object.next_page_number }}">Next</a>
+          {% endif %}
+    </li>
+    </ol>
+    </nav>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "app1/base.html" %}
+{% load django_tables2 %}
+{% load bootstrap4 %}
+{% block content %}
+    {% if filter %}
+    <form action="" method="get" class="form-group ml-4 mr-3 mt-2 mb-2 form-inline">
+        {% bootstrap_form filter.form layout='inline' size='sm' class='mb-3 pl-5' %}
+        {% bootstrap_button 'Filter' button_type='submit' size='sm' %}
+		</form>
+	<a class="btn btn-sm btn-outline-primary" href="{% querystring '_export'='xlsx' %}">Download Excel</a>
+    {% endif %}
+
+      <table class="table thead-dark table-striped table-hover table-responsive-sm">
+            {% render_table table %}
+			</table>
+{{ filter.form.media.js }}
+<script>
+$('.django-select2').djangoSelect2({placeholder:'Select an option        '});
+$('#id_so').djangoSelect2({placeholder:'Select an option        ',width:'style'});
+$.fn.select2.defaults.set( "width", '100%' );
+$.fn.select2.defaults.set( "val", 22 );
+$.fn.select2.defaults.set( "theme", "bootstrap" );
+</script>
+
+{% endblock %}

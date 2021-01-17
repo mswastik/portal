@@ -1,0 +1,44 @@
+{% extends "app1/base.html" %}
+{% load bootstrap4 %}
+{% block content %}
+<div id="output"></div>
+<div style="display:none">
+
+{% load static %}
+
+{% autoescape off %}
+{{ df }}
+{% endautoescape %}
+</div>
+<script>
+$("#output").pivotUI(
+    $("#input"), {
+rows: [],
+cols: [],
+renderers: $.extend(
+$.pivotUtilities.renderers,
+$.pivotUtilities.plotly_renderers,
+$.pivotUtilities.export_renderers
+),
+derivedAttributes: {
+                        "delivery month": $.pivotUtilities.derivers.dateFormat("so_del_date", "%y-%m", true),
+                        "so month":   $.pivotUtilities.derivers.dateFormat("so_date", "%w", true)
+                    },
+
+onRefresh: function() {
+$('.pvtTable').addClass('table-hover');
+$('.pvtTable tbody tr').addClass('success');
+$('.pvtRenderer').addClass('custom-select-sm');
+$('.pvtAttrDropdown').addClass('custom-select-sm');
+$('li').addClass('pt-0 pb-0');
+$('.ui-sortable-handle').addClass('pt-0 pb-0');
+$('.pvtAxisContainer').addClass('pt-0 pb-0');
+$('.pvtAggregator').addClass('custom-select-sm');
+$('.pvtAttr').addClass('custom-select-sm');
+$('.pvtTriangle').addClass('btn dropdown-toggle');
+$('.pvtUiCell').addClass('pt-0 pb-0');
+$('button').addClass('btn btn-outline-primary btn-sm');
+}
+});
+</script>
+{% endblock %}

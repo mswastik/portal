@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<head>
+{% load static %}
+<link rel="stylesheet" href="{%static 'bootstrap.min.css' %}" >
+<link rel="stylesheet" href="{%static 'bootstrap-reboot.min.css' %}" >
+<link rel="stylesheet" href="{%static 'bootstrap-grid.min.css' %}" >
+<link rel="stylesheet" href="{%static 'select2-bootstrap.min.css' %}" >
+<link rel='stylesheet' href="{%static 'pivot.min.css' %}">
+<link rel="stylesheet" href="{%static 'all.css' %}" >
+<link rel="stylesheet" href="{%static 'custom.css' %}" >
+
+
+<script src="{%static 'jquery-3.5.1.min.js' %}"></script>
+<script src="{%static 'jquery-ui.min.js' %}"></script>
+<script src="{%static 'jquery.formset.js' %}"></script>
+<script src="{%static 'bootstrap.bundle.min.js' %}"></script>
+<script src="{%static 'plotly-basic-latest.min.js' %}"></script>
+<script src="{%static 'pivot.min.js' %}"></script>
+<script src="{%static 'plotly_renderers.min.js' %}"></script>
+<script src="{%static 'export_renderers.min.js' %}"></script>
+
+<link rel="stylesheet" href="{%static 'select2.min.css' %}" >
+<link rel="stylesheet" href="{%static 'select2-bootstrap.min.css' %}" >
+<link rel="stylesheet" href="{%static 'custom.css' %}" >
+<nav class="navbar-sm navbar-expand-sm bg-dark navbar-dark">
+<ul class="navbar-nav">
+
+<li class="nav-items">
+<a class="nav-link" href="{% url 'index' %}">Home</a>
+</li>
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Create</a>
+    <div class="dropdown-menu pt-0 mt-0">
+    <a class="dropdown-item" href="{% url 'soform' %}">SO</a>
+	<a class="dropdown-item" href="{% url 'speedform' %}">Speed</a>
+	<a class="dropdown-item" href="{% url 'productform' %}">Product</a>
+	<a class="dropdown-item" href="{% url 'lineform' %}">Line</a>
+	<a class="dropdown-item" href="{% url 'productionform' %}">Production</a>
+	<a class="dropdown-item" href="{% url 'dispatchform' %}">Dispatch</a>
+	<a class="dropdown-item" href="{% url 'customerform' %}">Customer</a>
+	<a class="dropdown-item" href="{% url 'bomform' %}">BOM</a>
+	<a class="dropdown-item" href="{% url 'materialform' %}">Material</a>
+    </div>
+    </li>
+
+<li class="nav-item dropdown">
+<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">View</a>
+<div class="dropdown-menu pt-0 mt-0">
+<a class="dropdown-item" href="{% url 'solist' %}">SO List</a>
+<a class="dropdown-item" href="{% url 'planlist' %}">Plan List</a>
+<a class="dropdown-item" href="{% url 'speedlist' %}">Speed List</a>
+<a class="dropdown-item" href="{% url 'productlist' %}">Product List</a>
+<a class="dropdown-item" href="{% url 'materiallist' %}">Material List</a>
+<a class="dropdown-item" href="{% url 'bomlist' %}">BOM List</a>
+<a class="dropdown-item" href="{% url 'productionlist' %}">Production List</a>
+<a class="dropdown-item" href="{% url 'dispatchlist' %}">Dispatch List</a>
+<a class="dropdown-item" href="{% url 'customerlist' %}">Customer List</a>
+<a class="dropdown-item" href="{% url 'wplist' %}">Without Plan List</a>
+</div>
+</li>
+
+<li class="nav-item dropdown">
+<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Update</a>
+<div class="dropdown-menu pt-0 mt-0">
+<a class="dropdown-item" href="{% url 'soupdate' %}">SO</a>
+<a class="dropdown-item" href="{% url 'productupdate' %}">Product</a>
+<a class="dropdown-item" href="{% url 'dispatchupdate' %}">Dispatch</a>
+<a class="dropdown-item" href="{% url 'productionupdate' %}">Production</a>
+</li>
+<li class="nav-item dropdown">
+<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Reports</a>
+<div class="dropdown-menu pt-0 mt-0">
+<a class="dropdown-item" href="{% url 'matreq' %}">Material Required</a>
+<a class="dropdown-item" href="{% url 'openso' %}">Open SO</a>
+<a class="dropdown-item" href="{% url 'dispatchupdate' %}">Dispatch</a>
+</li>
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Graph</a>
+    <div class="dropdown-menu pt-0 mt-0">
+    <a class="dropdown-item" href="{% url 'plotly' %}">Plotly</a>
+    </li>
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Pivot</a>
+    <div class="dropdown-menu pt-0 mt-0">
+    <a class="dropdown-item" href="{% url 'sopivot' %}">SO</a>
+    <a class="dropdown-item" href="{% url 'prodpivot' %}">Production</a>
+    <a class="dropdown-item" href="{% url 'planpivot' %}">Plan</a>
+    <a class="dropdown-item" href="{% url 'matreqpivot' %}">Material</a>
+    </li>
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Dtale</a>
+    <div class="dropdown-menu pt-0 mt-0">
+    <a class="dropdown-item" href="{% url 'sodview' %}" target="_blank">SO</a>
+</li>
+
+<li class="nav-items">
+<a class="nav-link" href="/admin/">Admin</a>
+</li>
+
+</ul>
+</nav>
+</head>
+<body>
+
+{% block content %}
+{% endblock %}
+
+</body>
+</html>

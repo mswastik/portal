@@ -1,0 +1,38 @@
+{% extends "app1/base.html" %}
+{% load bootstrap4 %}
+{% block content %}
+<div class="col-auto">
+   <table class="table thead-dark table-striped table-hover table-responsive">
+
+<form method="post" class="form">
+   {{ formset.non_form_errors.as_ul }}
+<table id="formset" class="form">
+{% for form in formset.forms %}
+  {% if forloop.first %}
+  <thead><tr>
+    {% for field in form.visible_fields %}
+    <th>{{ field.label|capfirst }}</th>
+    {% endfor %}
+  </tr></thead>
+  {% endif %}
+  <tr class="{% cycle row1 row2 %}">
+  {% for field in form.visible_fields %}
+    <td>
+    {# Include the hidden fields in the form #}
+    {% if forloop.first %}
+      {% for hidden in form.hidden_fields %}
+      {{ hidden }}
+      {% endfor %}
+    {% endif %}
+      {{ field.errors.as_ul }}
+      {{ field }}
+    </td>
+  {% endfor %}
+  </tr>
+{% endfor %}
+</table>
+   <input type="submit" value="Submit" />
+</form>
+
+</table>
+{% endblock %}

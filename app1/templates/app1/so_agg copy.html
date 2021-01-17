@@ -1,0 +1,25 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+    <h2>SO</h2>
+    <div class="col-auto">
+    <table class="table thead-dark table-striped table-hover table-responsive">
+	<tr>
+        <th>SO</th>
+        <th>SO Date</th>
+        <th>SO Dispatch Date</th>
+        <th>Description</th>
+	<th>Quantity</th>
+	</tr>
+       {% for so in ordersrecieved %}
+	   <tr>
+            <td>{{ so.so }}</td>	
+	    <td>{{ so.so_date }}</td>
+	    <td>{{ so.so_del_date }}</td>
+	    <td>{{ so.code }}</td>
+	    <td>{{ so.qty }}</td> 
+           </tr>
+       {% endfor %}
+      </table>
+	</div>
+{% endblock %}

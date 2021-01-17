@@ -1,0 +1,34 @@
+{% extends "app1/base.html" %}
+{% load crispy_forms_tags %}
+{% load bootstrap4 %}
+{% block content %}
+
+{% if form.errors %}
+<p class="text-justify text-center">Your username and password didn't match. Please try again.</p>
+{% endif %}
+
+{% if next %}
+    {% if user.is_authenticated %}
+    <p class="text-center mt-5">Your account doesn't have access to this page. To proceed,
+    please login with an account that has access.</p>
+    {% else %}
+    <p class="text-center mt-5">Please login to see this page.</p>
+    {% endif %}
+{% endif %}
+<div class="form-group container">
+<form method="post" class="form mr-2 ml-2 col-md-5" action="{% url 'login' %}">
+{% csrf_token %}
+  {% bootstrap_form form %}
+
+  <input class="btn btn-outline-primary ml-2" type="submit" value="login" />
+  <input type="hidden" name="next" value="{{ next }}" />
+
+</form>
+
+{# Assumes you setup the password_reset view in your URLconf #}
+<p class="text-justify mt-3 pl-4"><a href="{% url 'password_reset' %}">Lost password?</a></p>
+</div>
+{% endblock %}
+
+
+</html>

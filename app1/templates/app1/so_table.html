@@ -1,0 +1,34 @@
+
+{% extends "app1/base.html" %}
+{% load static %}
+
+<script src="{%static 'pandas_bootstrap_table.js' %}"></script>
+{% block content %}
+
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('#table').bootstrapTable({
+           data:{{data|safe}},
+           pagination: true,
+           showColumns: true,
+           showToggle: true,
+           showExport: true,
+           sortable: true,
+           striped: true,
+        });    
+    });
+</script>
+
+<table id="table" data-search="true">
+    <thead>
+        <tr>
+            {% for col in columns %}
+            <th data-field="{{col}}" data-sortable="true">{{col}}</th>
+            {% endfor %}
+        </tr>
+        
+    </thead>
+</table>
+{{ context1 }}
+{% endblock %}
