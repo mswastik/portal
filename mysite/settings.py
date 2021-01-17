@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'dal',
+    'dal_select2',
     'app1.apps.App1Config',
     'import_export',
     'widget_tweaks',
@@ -47,7 +49,7 @@ INSTALLED_APPS = [
     'reversion',
     'tabular_permissions',
     'django.contrib.admin',
-    'django_select2',
+    #'django_select2',
 ]
 
 MIDDLEWARE = [
@@ -157,7 +159,7 @@ CACHES = {
         'LOCATION': 'my_cache_table',
     }
 }
-SELECT2_CACHE_BACKEND = 'select2'
+#SELECT2_CACHE_BACKEND = 'select2'
 
 JAZZMIN_SETTINGS = {
     'show_ui_builder': True,

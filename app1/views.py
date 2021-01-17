@@ -38,6 +38,7 @@ from django_tables2.config import RequestConfig
 from django.contrib import messages
 from django.db.models import F
 from django.db.models import Subquery, OuterRef
+from dal import autocomplete
 
 # Create your views here.
 def index(request):
@@ -70,8 +71,8 @@ class OpenSoWidget(ModelSelect2Widget):
 
 @permission_required("app1.add_so",login_url='/accounts/login/')   
 def SoCreate(request):
-    SoFormSet = modelformset_factory(So, fields=('fgcode','so','so_date','so_del_date','closed','customer','so_qty'), extra=9,
-					widgets={'fgcode': ProductWidget(),'so_date': DateInput(),'so_del_date': DateInput()})
+    SoFormSet = modelformset_factory(So, fields=('so','fgcode','so_date','so_del_date','closed','customer','so_qty'), extra=9,
+					widgets={'fgcode': autocomplete.ModelSelect2(url='product-autocomplete'),'so_date': DateInput(),'so_del_date': DateInput()})
     helper = SoForm.helper
     if request.method == 'POST':
         formset = SoFormSet(request.POST)
@@ -113,7 +114,7 @@ def ProductCreate(request):
 
 @permission_required("app1.add_speed",login_url='/accounts/login/')  
 def SpeedCreate(request):
-    SpeedFormset = modelformset_factory(Speed,fields=('__all__'),extra=5,widgets={'code':ProductWidget})
+    SpeedFormset = modelformset_factory(Speed,fields=('__all__'),extra=5,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete')})
     helper = SpeedForm.helper
     if request.method == 'POST':
         formset = SpeedFormset(request.POST)
@@ -128,7 +129,7 @@ def SpeedCreate(request):
 
 @permission_required("app1.add_production",login_url='/accounts/login/')  
 def ProductionCreate(request):
-    ProductionFormset = modelformset_factory(Production,fields=('__all__'),extra=10,widgets={'date':DateInput,'so':OpenSoWidget()})
+    ProductionFormset = modelformset_factory(Production,fields=('__all__'),extra=10,widgets={'date':DateInput,'so': autocomplete.ModelSelect2(url='openso-autocomplete')})
     helper = ProductionForm.helper
     if request.method == 'POST':
         formset = ProductionFormset(request.POST)
@@ -144,7 +145,7 @@ def ProductionCreate(request):
 
 @permission_required("app1.add_dispatch",login_url='/accounts/login/')  
 def DispatchCreate(request):
-    DispatchFormset = modelformset_factory(Dispatch,fields=('__all__'),extra=8,widgets={'dispatch_date':DateInput,'so':OpenSoWidget()})
+    DispatchFormset = modelformset_factory(Dispatch,fields=('__all__'),extra=8,widgets={'dispatch_date':DateInput,'so':autocomplete.ModelSelect2(url='openso-autocomplete')})
     helper = DispatchForm.helper
     if request.method == 'POST':
         formset = DispatchFormset(request.POST)
@@ -176,7 +177,7 @@ def CustomerCreate(request):
     
 @permission_required("app1.add_bom",login_url='/accounts/login/')  
 def BOMCreate(request):
-    BOMFormset = modelformset_factory(BOM,fields=('__all__'),extra=7,widgets={'fgcode':ProductWidget,'material_code':MaterialWidget})
+    BOMFormset = modelformset_factory(BOM,fields=('__all__'),extra=7,widgets={'fgcode':autocomplete.ModelSelect2(url='product-autocomplete'),'material_code':autocomplete.ModelSelect2(url='material-autocomplete')})
     helper = BOMForm.helper
     if request.method == 'POST':
         formset = BOMFormset(request.POST)
@@ -192,7 +193,7 @@ def BOMCreate(request):
 
 @permission_required("app1.add_material",login_url='/accounts/login/')  
 def MaterialCreate(request):
-    MaterialFormset = modelformset_factory(Material,fields=('__all__'),extra=7,widgets={'fgcode':forms.TextInput,'material_code':MaterialWidget})
+    MaterialFormset = modelformset_factory(Material,fields=('__all__'),extra=7,widgets={'material_code':autocomplete.ModelSelect2(url='material-autocomplete')})
     helper = MaterialForm.helper
     if request.method == 'POST':
         formset = MaterialFormset(request.POST)
@@ -209,7 +210,7 @@ def MaterialCreate(request):
 @permission_required("app1.change_so",login_url='/accounts/login/')  
 def SoUpdate(request):
     fields=('fgcode','so','so_date','so_del_date','commit_disp_date','so_qty','closed','remarks')
-    SoUpFormset = modelformset_factory(So,fields=fields,widgets={'fgcode':ProductWidget},can_delete=True)
+    SoUpFormset = modelformset_factory(So,fields=fields,widgets={'fgcode':autocomplete.ModelSelect2(url='product-autocomplete')},can_delete=True)
     helper = SoForm1.helper
     f = SoFilter(request.GET, queryset=So.objects.all())
     paginator = Paginator(f.qs, 25,)

@@ -9,6 +9,7 @@ from django_tables2.utils import A
 from django import forms
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+from dal import autocomplete
 
 class SoWidget(ModelSelect2Widget):
     model = So
@@ -26,7 +27,8 @@ class SoFilter(django_filters.FilterSet):
     del__gt = django_filters.DateFilter(field_name='so_del_date', lookup_expr='gte',widget=DateInput())
     del__lt = django_filters.DateFilter(field_name='so_del_date', lookup_expr='lte',widget=DateInput())
     customer__customer = django_filters.CharFilter(lookup_expr='icontains')
-    so = django_filters.CharFilter(lookup_expr='icontains')
+    so = django_filters.TypedMultipleChoiceFilter(choices=zip(So.objects.distinct().values_list('so',flat=True),So.objects.distinct().values_list('so',flat=True)),coerce=str,widget=autocomplete.Select2Multiple())
+    #print(zip(So.objects.values_list('so',flat=True),So.objects.values_list('so',flat=True)))
     fgcode__code = django_filters.CharFilter(lookup_expr='icontains')
     fgcode__desc = django_filters.CharFilter(lookup_expr='icontains')
     fgcode__bus_category = django_filters.ChoiceFilter(choices=bus_cat_choices)
@@ -46,7 +48,7 @@ class DispatchFilter(django_filters.FilterSet):
         ('gt', 'Greater than'),
         ('lt', 'Less than'),
     ])
-    so__so = django_filters.CharFilter(lookup_expr='icontains')
+    so__so = django_filters.TypedMultipleChoiceFilter(choices=zip(So.objects.distinct().values_list('so',flat=True),So.objects.distinct().values_list('so',flat=True)),coerce=str,widget=autocomplete.Select2Multiple())
     so__fgcode__code = django_filters.CharFilter(lookup_expr='icontains')
     so__fgcode__bus_category = django_filters.ChoiceFilter(choices=bus_cat_choices)
     so__fgcode__prod_category = django_filters.ChoiceFilter(choices=category_choices)

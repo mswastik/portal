@@ -9,6 +9,7 @@ from django_select2.forms import Select2Widget,ModelSelect2Widget
 from datetime import datetime  
 from django.contrib.admin.widgets import FilteredSelectMultiple
 
+
 class DateInput(forms.DateInput):
     input_type = 'date'
 
@@ -66,6 +67,7 @@ class ProductionForm(forms.ModelForm):
     helper = FormHelper()
     helper.template = 'bootstrap4/table_inline_formset.html'    
     helper.form_method = 'post'
+    #helper.form_class='form-control mt-0'
     helper.add_input(Submit('submit', 'Submit'))
 
 class ProductionForm1(forms.ModelForm):

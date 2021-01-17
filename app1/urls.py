@@ -20,11 +20,16 @@ from django.views.generic import ListView,TemplateView
 from django.conf.urls import url
 from .views import *
 from django_filters.views import FilterView
+from .autocomplete import *
 admin.autodiscover()
 
 urlpatterns = [
     path('', index, name='index'),
-    path(r'select2/', include('django_select2.urls')),
+    url(r'^product-autocomplete/$',ProductAutocomplete.as_view(),name='product-autocomplete',),
+    url(r'^openso-autocomplete/$',OpensoAutocomplete.as_view(),name='openso-autocomplete',),
+    url(r'^so-autocomplete/$',SoAutocomplete.as_view(),name='so-autocomplete',),
+    url(r'^material-autocomplete/$',MaterialAutocomplete.as_view(),name='material-autocomplete',),
+    #path(r'select2/', include('django_select2.urls')),
     path('solist/', SoList.as_view(), name='solist'),
     path('wplist/', WPList.as_view(), name='wplist'),
     path('planlist/', PlanList.as_view(), name='planlist'),
