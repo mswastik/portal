@@ -10,6 +10,7 @@ from django import forms
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from dal import autocomplete
+from dal import forward
 
 class SoWidget(ModelSelect2Widget):
     model = So
@@ -27,7 +28,7 @@ class SoFilter(django_filters.FilterSet):
     del__gt = django_filters.DateFilter(field_name='so_del_date', lookup_expr='gte',widget=DateInput())
     del__lt = django_filters.DateFilter(field_name='so_del_date', lookup_expr='lte',widget=DateInput())
     customer__customer = django_filters.CharFilter(lookup_expr='icontains')
-    so = django_filters.TypedMultipleChoiceFilter(choices=zip(So.objects.distinct().values_list('so',flat=True),So.objects.distinct().values_list('so',flat=True)),coerce=str,widget=autocomplete.Select2Multiple())
+    so = django_filters.ModelMultipleChoiceFilter(queryset=So.objects.all(),field_name='so',to_field_name='so',widget=autocomplete.ModelSelect2Multiple(url='so-autocomplete1'))
     #print(zip(So.objects.values_list('so',flat=True),So.objects.values_list('so',flat=True)))
     fgcode__code = django_filters.CharFilter(lookup_expr='icontains')
     fgcode__desc = django_filters.CharFilter(lookup_expr='icontains')
@@ -77,8 +78,10 @@ class PlanFilter(django_filters.FilterSet):
         exclude = ()
         
 class BOMFilter(django_filters.FilterSet):
+    material_code = django_filters.CharFilter(widget=autocomplete.ListSelect2(url='material-autocomplete'))
     material_code__desc = django_filters.CharFilter(lookup_expr='icontains')
     fgcode__code = django_filters.CharFilter(lookup_expr='icontains')
+    fgcode__desc = django_filters.CharFilter(lookup_expr='icontains')
     class Meta:
         model = BOM
         exclude = ('material_code','fgcode')
@@ -127,6 +130,7 @@ class SoTable1(tables.Table):
         fields = ('so','so_date','so_del_date','fgcode','so_qty','production_sum','prod_balance','dispatch_sum')
         #exclude = ('currency','remarks','rate','id','act_disp_date')
         attrs = {'class': 'table table-sm'}
+        order_by='so_del_date'
     #def render_balance(self, value, record):
         #return format_html("{}-{}", record.qty, record.production_sum)
     #balance = tables.Column()
@@ -182,10 +186,25 @@ class BOMTable(tables.Table):
     class Meta:
         model = BOM
         #fields = ('bomversion','material_code__material_id','qty')
-        exclude = ('id',)
+        exclude = ('id','bomversion')
         attrs = {'class': 'table table-sm'}
     fgcode = tables.Column(linkify={"viewname":"bomdetail", "args":[A("fgcode_id")]})
     material_code = tables.Column(linkify=True)
+    #material_code__material_id = tables.Column()
+
+class MatreqTable(tables.Table):
+    class Meta:
+        model = BOM
+        #fields = ('bomversion','material_code__material_id','qty')
+        exclude = ('id','bomversion','material_code','bom_type','fgcode')
+        attrs = {'class': 'table table-sm'}
+    #fgcode = tables.Column(linkify={"viewname":"bomdetail", "args":[A("fgcode_id")]})
+    material_code__code = tables.Column()
+    material_code__desc = tables.Column()
+    fgcode__code = tables.Column(linkify={"viewname":"bomdetail", "args":[A("fgcode_id")]})
+    fgcode__desc = tables.Column()
+    qty = tables.Column()
+    fgcode__so__so_qty = tables.Column()
     #material_code__material_id = tables.Column()
 
 class DispatchTable(tables.Table):
@@ -194,7 +213,9 @@ class DispatchTable(tables.Table):
         #fields = ('code','desc','case_size','bulk_code','micro','carton')
         exclude = ()
         attrs = {'class': 'table table-sm'}
+        order_by = '-dispatch_date'
     so = tables.Column(linkify={"viewname":"dispatchdetail", "args":[A("pk")]})
+    dispatch_date=tables.Column(order_by=("dispatch_date",))
     dis_qty = SummingColumn()
         
 class ProductionTable(tables.Table):

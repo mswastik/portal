@@ -5,13 +5,17 @@
 {% block content %}
 {{ formset.media }}
 
-<form action="" class="form" method="post">
+<form action="" class="form form-group-sm " method="post">
     {% csrf_token %}
-   {% crispy formset helper%}
+   {% crispy formset helper %}
 </form>
 <script>
     $.fn.select2.defaults.set( "theme", "bootstrap4");
 	$.fn.select2.defaults.set( "width", "30em");
+	$('.select2').select2({
+    containerCssClass: "input-group-sm form-control-sm",
+    dropdownCssClass: "input-group-sm form-control-sm",
+});
 </script>
 
 {% endblock %}

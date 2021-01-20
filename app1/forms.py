@@ -8,7 +8,7 @@ from .custom_layout_object import Formset
 from django_select2.forms import Select2Widget,ModelSelect2Widget
 from datetime import datetime  
 from django.contrib.admin.widgets import FilteredSelectMultiple
-
+from dal import autocomplete
 
 class DateInput(forms.DateInput):
     input_type = 'date'
@@ -87,7 +87,7 @@ class DispatchForm1(forms.ModelForm):
         model = Dispatch
         exclude=()
         widgets = {
-            'so': SoWidget
+            'so': autocomplete.ModelSelect2(url='so-autocomplete1')
         }
 
 class DispatchForm(forms.ModelForm):

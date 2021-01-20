@@ -9,7 +9,7 @@ class ProductAutocomplete(autocomplete.Select2QuerySetView):
             return Product.objects.none()
         qs = Product.objects.all()
         if self.q:
-            qs = qs.filter(Q(desc__istartswith=self.q) | Q(code__istartswith=self.q))
+            qs = qs.filter(Q(desc__icontains=self.q) | Q(code__icontains=self.q))
         return qs
         
 class OpensoAutocomplete(autocomplete.Select2QuerySetView):
@@ -19,7 +19,7 @@ class OpensoAutocomplete(autocomplete.Select2QuerySetView):
             return So.objects.none()
         qs = So.objects.all()
         if self.q:
-            qs = qs.filter(Q(closed=False),Q(so__istartswith=self.q) | Q(fgcode__code__istartswith=self.q))
+            qs = qs.filter(Q(closed=False),Q(so__icontains=self.q) | Q(fgcode__code__icontains=self.q))
         return qs
     def get_selected_result_label(self, item):
         return '{} - {} - {}'.format(item.so,item.fgcode,item.so_qty)
@@ -32,12 +32,31 @@ class SoAutocomplete(autocomplete.Select2QuerySetView):
             return So.objects.none()
         qs = So.objects.all()
         if self.q:
-            qs = qs.filter(Q(so__istartswith=self.q) | Q(fgcode__code__istartswith=self.q))
+            qs = qs.filter(Q(so__icontains=self.q) | Q(fgcode__code__icontains=self.q))
         return qs
+        
     def get_selected_result_label(self, item):
         return '{}'.format(item.so)
     def get_result_label(self, item):
         return '{}'.format(item.so)
+
+#Return SO no. instead of pk
+class SoAutocomplete1(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return So.objects.none()
+        qs = So.objects.all().distinct('so')
+        if self.q:
+            qs = qs.filter(Q(so__icontains=self.q) | Q(fgcode__code__icontains=self.q)).distinct('so')
+        return qs
+    def get_result_value(self, result):
+        """Return the value of a result."""
+        return result.so #change pk to the variable of your choice
+        
+    def get_selected_result_label(self, item):
+        return '{}'.format(item.so)
+    def get_result_label(self, item):
+        return '{}'.format(item.so)        
         
 class MaterialAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
@@ -45,7 +64,7 @@ class MaterialAutocomplete(autocomplete.Select2QuerySetView):
             return Material.objects.none()
         qs = Material.objects.all()
         if self.q:
-            qs = qs.filter(Q(code__istartswith=self.q) | Q(desc__istartswith=self.q))
+            qs = qs.filter(Q(code__icontains=self.q) | Q(desc__icontains=self.q))
         return qs
     def get_selected_result_label(self, item):
         return '{} - {}'.format(item.code,item.desc)

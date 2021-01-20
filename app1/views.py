@@ -39,6 +39,8 @@ from django.contrib import messages
 from django.db.models import F
 from django.db.models import Subquery, OuterRef
 from dal import autocomplete
+from django.utils.decorators import method_decorator
+from django.contrib.auth.mixins import PermissionRequiredMixin
 
 # Create your views here.
 def index(request):
@@ -74,6 +76,8 @@ def SoCreate(request):
     SoFormSet = modelformset_factory(So, fields=('so','fgcode','so_date','so_del_date','closed','customer','so_qty'), extra=9,
 					widgets={'fgcode': autocomplete.ModelSelect2(url='product-autocomplete'),'so_date': DateInput(),'so_del_date': DateInput()})
     helper = SoForm.helper
+    helper.field_class = 'input-group-sm form-control-sm mt-0'
+
     if request.method == 'POST':
         formset = SoFormSet(request.POST)
         if formset.is_valid():
@@ -300,6 +304,7 @@ def ProductionUpdate(request):
     context = {'formset': formset,'helper':helper,'filter': f,'page_obj': page_obj}
     return render(request,'app1/update_form.html',context)
 
+
 class SoDetail1(UpdateView):
     model = So
     #form_class = SoForm
@@ -357,9 +362,10 @@ class SoDetail1(UpdateView):
         #form.fields['act_disp_date'].widget = DateInput()
         return form
 
-     
-class ProductDetail(UpdateView):
+class ProductDetail(PermissionRequiredMixin,UpdateView):
     model = Product
+    permission_required = 'app1.change_product'
+    login_url='/accounts/login/'
     #table_class = ProductTable
     #form_class = ProductForm
     template_name = 'app1/form.html'
@@ -412,7 +418,7 @@ class DispatchDetail(UpdateView):
         
 def BOMDetail(request,fgcode_id=None):
     #model = BOM
-    bomformset=modelformset_factory(BOM,fields=('__all__'),can_delete=True,extra=0)
+    bomformset=modelformset_factory(BOM,fields=('__all__'),can_delete=True,extra=0,widgets={'fgcode':autocomplete.ModelSelect2(url='product-autocomplete'),'material_code':autocomplete.ModelSelect2(url='material-autocomplete')})
     template_name = 'app1/update_form.html'
     fields='__all__'
     helper = BOMForm.helper
@@ -426,7 +432,6 @@ def BOMDetail(request,fgcode_id=None):
     else:
         formset = bomformset(queryset=BOM.objects.filter(fgcode_id=fgcode_id))
     context = {'formset': formset,'helper':helper}
-    print(BOM.objects.filter(fgcode=fgcode_id))
     return render(request,'app1/update_form.html',context)
 
 class SoDetail(UpdateView):
@@ -634,16 +639,27 @@ def sodview(request):
         response = redirect('http://asus:40000/dtale/main/so')
     return response
 
+from django.db.models.expressions import RawSQL
 def matreq(request):
     #qs = Material.objects.all()
-    qs = Material.objects.raw('''SELECT m.id,m.code,m.desc, f.code AS fgcode,f.desc AS fdesc, SUM(s.so_qty) AS so_qty,b.qty as bqty, SUM(b.qty*s.so_qty) AS req FROM ((( app1_material m  
+    '''
+    rqs = Material.objects.raw("SELECT m.id,m.code,m.desc, f.code AS fgcode,f.desc AS fdesc, SUM(s.so_qty) AS so_qty,b.qty as bqty, SUM(b.qty*s.so_qty) AS req FROM ((( app1_material m  
                                                                                               LEFT JOIN app1_bom b ON b.material_code_id=m.id)
                                                                                               LEFT JOIN app1_so s ON b.fgcode_id=s.fgcode_id)
-                                                                                              LEFT JOIN app1_product f ON f.id=b.fgcode_id) WHERE s.closed=FALSE AND b.active=TRUE GROUP BY m.id,f.code,f.desc,bqty''')
+                                                                                              LEFT JOIN app1_product f ON f.id=b.fgcode_id) WHERE s.closed=FALSE AND b.active=TRUE GROUP BY m.id,f.code,f.desc,bqty")
+    
+    sql=("SELECT DISTINCT m.code,m.desc FROM app1_bom b
+            LEFT JOIN app1_material m ON (b.material_code_id = m.id)
+            LEFT JOIN app1_product f ON (b.fgcode_id=f.id)
+            LEFT JOIN app1_so s ON (s.fgcode_id = f.id)
+            WHERE s.closed=FALSE AND b.active=TRUE GROUP BY m.code,m.desc")
+    '''
+    qs = BOM.objects.order_by().values('material_code').distinct().values('fgcode_id','material_code__code','fgcode__code','fgcode__desc','qty','fgcode__so__so_qty')
     #print(qs)
-    f = MaterialFilter(request.GET, queryset=qs)
+    #qs = Material.objects.filter(pk__in=[x.pk for x in rqs])
+    f = BOMFilter(request.GET, queryset=qs)
     paginate_by = 25
-    table = MaterialTable1(f)
+    table = MatreqTable(f.qs)
     RequestConfig(request, paginate={'per_page': 25, 'page': 1}).configure(table)
     return render(request, "app1/list.html", {"table": table,"filter":f})
     
