@@ -70,6 +70,7 @@ country_choices = (
     ("Saudi Arabia", "Saudi Arabia"),
     ("Turkey", "Turkey"),
     ("Turkmenistan", "Turkmenistan"),
+    ("UAE", "UAE"),
     ("UK", "UK"),
     ("Uganda", "Uganda"),
     ("US", "US"),

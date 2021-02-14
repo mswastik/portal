@@ -311,7 +311,7 @@ class SoDetail1(UpdateView):
     template_name = 'app1/formmixin.html'
     fields=('id','so','so_date','so_del_date','closed','fgcode','customer','so_qty','act_disp_qty','act_disp_date')
     def get_success_url(self):
-        return reverse_lazy('solist')
+        return reverse_lazy('openso')
     def get_context_data(self, **kwargs):
         data = super(SoDetail, self).get_context_data(**kwargs)
         if self.request.POST:
@@ -408,13 +408,21 @@ class ProductionDetail(UpdateView):
         form.helper.add_input(Submit('submit', 'Update', css_class='btn-primary'))
         return form'''
 
-class DispatchDetail(UpdateView):
+class DispatchDetail(DeletionMixin,UpdateView):
     model = Dispatch
     template_name = 'app1/form.html'
     #fields='__all__'
     form_class = DispatchForm1
     def get_success_url(self):
         return reverse_lazy('dispatchlist')
+    def post(self, request, pk):
+        if 'confirm_delete' in self.request.POST:
+            return self.delete(request)
+    def form_valid(self, form, pk):
+        if 'confirm_post' in self.request.POST:
+            form.instance.user = self.request.user
+        return super(DispatchDetail, self).form_valid(form)
+
         
 def BOMDetail(request,fgcode_id=None):
     #model = BOM
@@ -439,7 +447,7 @@ class SoDetail(UpdateView):
     template_name = 'app1/form.html'
     fields='__all__'
     def get_success_url(self):
-        return reverse_lazy('solist')
+        return reverse_lazy('openso')
     def get_context_data(self, **kwargs):
         context = super(SoDetail, self).get_context_data(**kwargs)
         context['helper'] = SoDetail.get_form(self).helper
@@ -466,9 +474,9 @@ class MaterialDetail(DeletionMixin,UpdateView):
         context['form'] = MaterialForm(instance=self.object) 
         return context
     # Working delete Button
-    #def post(self, request, pk):
-    #    if 'confirm_delete' in self.request.POST:
-    #        return self.delete(request)
+    def post(self, request, pk):
+        if 'confirm_delete' in self.request.POST:
+            return self.delete(request)
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.helper = FormHelper()
@@ -583,7 +591,6 @@ def matreqpivot(request):
     df = pd.DataFrame(ss)
     bm = BOM.objects.values()
     df1 = pd.DataFrame(bm)
-    print(df1.columns)
     df = pd.merge(df,df1,how='left',left_on=['fgcode_id'],right_on=['bom_id__fgcode'])
     df = df.to_html(table_id="input",index=False)
     context = {'df': df}
@@ -671,3 +678,97 @@ def openso(request):
     table = SoTable1(f.qs)
     RequestConfig(request, paginate={'per_page': 25, 'page': 1}).configure(table)
     return render(request, "app1/list.html", {"table": table,"filter":f})
+    
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+import dash_table
+import dash_bootstrap_components as dbc
+from django_plotly_dash import DjangoDash
+
+def session_state_view(request, template_name, **kwargs):
+    external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+    app = DjangoDash('DjangoSessionState',add_bootstrap_links=True,external_stylesheets=external_stylesheets)
+    qs = So.objects.all()
+    ff=[f.name for f in So._meta.get_fields()]
+    ff.extend(['fgcode__'+k.name for k in Product._meta.get_fields()])
+    for i in ['fgcode__so','fgcode__id','act_disp_date','commit_disp_date','currency','act_disp_qty','rate','production','dispatch','plan','fgcode',
+            'fgcode__des_code','fgcode__customer','fgcode__cust_code','fgcode__cbm','remarks','fgcode__gr_wt','fgcode__stockfg','fgcode__speed','fgcode__bom']:
+        ff.remove(i)
+    df = read_frame(qs,fieldnames=ff,coerce_float=True,index_col='id')
+    df['so_del_date']=pd.to_datetime(df['so_del_date'],format='%Y-%m-%d')
+    df['so_date']=pd.to_datetime(df['so_date'],format='%Y-%m-%d')
+    app.layout = html.Div([dbc.Row([
+            dbc.Col(dcc.Dropdown(
+            id='dropdown',options=[{'label':i,'value':i} for i in df['fgcode__bus_category'].unique()], value='IBD',multi=True)),
+            dbc.Col(dcc.Dropdown(
+            id='frequency', options=[{'label':i,'value':i} for i in ['D','W','M']],value='M')),
+            dbc.Col(dcc.Dropdown(
+            id='date',options=[{'label':i,'value':i} for i in ['so_date','so_del_date']], value='so_del_date')),
+            dbc.Col(dcc.Dropdown(
+            id='line',options=[{'label':i,'value':i} for i in df['fgcode__prod_category'].unique()], value='Toothpaste',multi=True)),
+            ],className='mt-3'),
+        dcc.Graph(id='graph-with-slider'),
+        dash_table.DataTable(
+            id='datatable-interactivity',
+            columns=[
+                {"name": i, "id": i, "deletable": True, "selectable": True} for i in df.columns
+            ],
+            data=df.to_dict('records'),
+            style_cell={'fontSize':17},
+            #editable=True,
+            locale_format={'so_date':'datetime'},
+            filter_action="native",
+            sort_action="native",
+            sort_mode="multi",
+            #column_selectable="single",
+            #row_selectable="multi",
+            #row_deletable=True,
+            page_action="native",
+            page_current= 0,
+            page_size= 20,
+    ),
+    ])
+    @app.callback(
+         dash.dependencies.Output('graph-with-slider', 'figure'),
+        [dash.dependencies.Input('frequency', 'value'),
+         dash.dependencies.Input('dropdown', 'value'),
+         dash.dependencies.Input('date', 'value'),
+         dash.dependencies.Input('line', 'value')]
+        )
+    def callback_color(freq_value,dropdown_value,date,line):
+        if type(dropdown_value)==str:
+            fdf = df[df['fgcode__bus_category'].isin([dropdown_value[0:]])]
+        else:
+            fdf = df[df['fgcode__bus_category'].isin(dropdown_value[0:])]
+        if type(line)==str:
+            fdf = fdf[fdf['fgcode__prod_category'].isin([line[0:]])]
+        else:
+            fdf = fdf[fdf['fgcode__prod_category'].isin(line[0:])]
+        fdf.set_index(date,inplace=True)
+        fdf=fdf.resample(freq_value).sum()
+        fig = px.bar(fdf,x=fdf.index,y="so_qty")
+        fig.update_layout(transition_duration=1100)
+        return fig
+    
+    @app.callback(
+        dash.dependencies.Output('datatable-interactivity','data'),
+        [dash.dependencies.Input('graph-with-slider', 'clickData')]
+        )
+    def on_trace_click(click_data):
+        """Listen to click events and update table, passing filtered rows"""
+        #print(click_data)
+        p = click_data['points'][0]
+        # here, use 'customdata' property of clicked point, 
+        # could also use 'curveNumber', 'pointIndex', etc.
+        if 'x' in p:
+            key = p['x']
+            print(p['x'])
+        df_f = get_corresponding_rows(df, key)
+        return df_f.to_dict('records')
+
+    def get_corresponding_rows(df, my_key):
+        """Filter df, return rows that match my_key"""
+        return df[df['so_del_date'] == my_key]
+        
+    return render(request, template_name=template_name,)

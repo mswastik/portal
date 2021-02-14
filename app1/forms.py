@@ -87,8 +87,9 @@ class DispatchForm1(forms.ModelForm):
         model = Dispatch
         exclude=()
         widgets = {
-            'so': autocomplete.ModelSelect2(url='so-autocomplete1')
+            'so': autocomplete.ModelSelect2(url='openso-autocomplete')
         }
+    
 
 class DispatchForm(forms.ModelForm):
     class Meta:

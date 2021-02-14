@@ -1,0 +1,9 @@
+{% extends "app1/base.html" %}
+{% block content %}
+
+{% load plotly_dash %}
+<div class="{%plotly_class name="DjangoSessionState"%}">
+{%plotly_app name="DjangoSessionState" ratio=2 %}
+</div>
+
+{% endblock %}

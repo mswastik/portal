@@ -28,7 +28,8 @@ class SoFilter(django_filters.FilterSet):
     del__gt = django_filters.DateFilter(field_name='so_del_date', lookup_expr='gte',widget=DateInput())
     del__lt = django_filters.DateFilter(field_name='so_del_date', lookup_expr='lte',widget=DateInput())
     customer__customer = django_filters.CharFilter(lookup_expr='icontains')
-    so = django_filters.ModelMultipleChoiceFilter(queryset=So.objects.all(),field_name='so',to_field_name='so',widget=autocomplete.ModelSelect2Multiple(url='so-autocomplete1'))
+    so = django_filters.CharFilter(lookup_expr='icontains')
+    #so = django_filters.ModelMultipleChoiceFilter(queryset=So.objects.all(),field_name='so',to_field_name='so',widget=autocomplete.ModelSelect2Multiple(url='so-autocomplete1'))
     #print(zip(So.objects.values_list('so',flat=True),So.objects.values_list('so',flat=True)))
     fgcode__code = django_filters.CharFilter(lookup_expr='icontains')
     fgcode__desc = django_filters.CharFilter(lookup_expr='icontains')
@@ -51,6 +52,7 @@ class DispatchFilter(django_filters.FilterSet):
     ])
     so__so = django_filters.TypedMultipleChoiceFilter(choices=zip(So.objects.distinct().values_list('so',flat=True),So.objects.distinct().values_list('so',flat=True)),coerce=str,widget=autocomplete.Select2Multiple())
     so__fgcode__code = django_filters.CharFilter(lookup_expr='icontains')
+    so__fgcode__desc = django_filters.CharFilter(lookup_expr='icontains')
     so__fgcode__bus_category = django_filters.ChoiceFilter(choices=bus_cat_choices)
     so__fgcode__prod_category = django_filters.ChoiceFilter(choices=category_choices)
     class Meta:
@@ -91,6 +93,8 @@ class ProductFilter(django_filters.FilterSet):
     class Meta:
         model = Product
         exclude = ()
+    desc = django_filters.CharFilter(lookup_expr='icontains')
+    code = django_filters.CharFilter(lookup_expr='icontains')
 
 class MaterialFilter(django_filters.FilterSet):
     desc = django_filters.CharFilter(lookup_expr='icontains')
@@ -130,7 +134,7 @@ class SoTable1(tables.Table):
         fields = ('so','so_date','so_del_date','fgcode','so_qty','production_sum','prod_balance','dispatch_sum')
         #exclude = ('currency','remarks','rate','id','act_disp_date')
         attrs = {'class': 'table table-sm'}
-        order_by='so_del_date'
+        order_by=('so_del_date','so')
     #def render_balance(self, value, record):
         #return format_html("{}-{}", record.qty, record.production_sum)
     #balance = tables.Column()

@@ -49,14 +49,14 @@ class SoAutocomplete1(autocomplete.Select2QuerySetView):
         if self.q:
             qs = qs.filter(Q(so__icontains=self.q) | Q(fgcode__code__icontains=self.q)).distinct('so')
         return qs
-    def get_result_value(self, result):
+    #def get_result_value(self, result):
         """Return the value of a result."""
-        return result.so #change pk to the variable of your choice
+    #    return '{} - {} - {}'.format(result.so,result.fgcode,result.so_qty) #change pk to the variable of your choice
         
     def get_selected_result_label(self, item):
-        return '{}'.format(item.so)
+        return '{} - {} - {}'.format(item.so,item.fgcode,item.so_qty)
     def get_result_label(self, item):
-        return '{}'.format(item.so)        
+        return '{} - {} - {}'.format(item.so,item.fgcode,item.so_qty)        
         
 class MaterialAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):

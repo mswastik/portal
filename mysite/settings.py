@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'reversion',
     'tabular_permissions',
     'django.contrib.admin',
-    #'django_select2',
+    'django_plotly_dash.apps.DjangoPlotlyDashConfig',
 ]
 
 MIDDLEWARE = [
@@ -177,6 +177,8 @@ JAZZMIN_SETTINGS = {
         {'name':'App1', 'url': 'index'}
     ],
 }
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 JAZZMIN_UI_TWEAKS = {
     "navbar": "navbar-primary navbar-dark",

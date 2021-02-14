@@ -21,6 +21,7 @@ from django.conf.urls import url
 from .views import *
 from django_filters.views import FilterView
 from .autocomplete import *
+import dash
 from django.contrib.auth.decorators import login_required, permission_required
 admin.autodiscover()
 
@@ -70,5 +71,6 @@ urlpatterns = [
     path('planpivot/', planpivot, name='planpivot'),
     path('matreqpivot/', matreqpivot, name='matreqpivot'),
     path('sodview/',sodview,name='sodview'),
-    #path('django_plotly_dash/', include('django_plotly_dash.urls')),
+    path('django_plotly_dash/', include('django_plotly_dash.urls')),
+    url('^demo-eight', session_state_view, {'template_name':'app1/dash.html'},name="demo-eight"),
 ]
