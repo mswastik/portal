@@ -36,13 +36,14 @@
     <div class="dropdown-menu pt-0 mt-0">
     <a class="dropdown-item" href="{% url 'soform' %}">SO</a>
 	<a class="dropdown-item" href="{% url 'speedform' %}">Speed</a>
-	<a class="dropdown-item" href="{% url 'productform' %}">Product</a>
 	<a class="dropdown-item" href="{% url 'lineform' %}">Line</a>
 	<a class="dropdown-item" href="{% url 'productionform' %}">Production</a>
 	<a class="dropdown-item" href="{% url 'dispatchform' %}">Dispatch</a>
 	<a class="dropdown-item" href="{% url 'customerform' %}">Customer</a>
 	<a class="dropdown-item" href="{% url 'bomform' %}">BOM</a>
 	<a class="dropdown-item" href="{% url 'materialform' %}">Material</a>
+	<a class="dropdown-item" href="{% url 'wcgroupform' %}">WC Group</a>
+	<a class="dropdown-item" href="{% url 'routingform' %}">Routing</a>
     </div>
     </li>
 
@@ -52,12 +53,14 @@
 <a class="dropdown-item" href="{% url 'solist' %}">SO List</a>
 <a class="dropdown-item" href="{% url 'planlist' %}">Plan List</a>
 <a class="dropdown-item" href="{% url 'speedlist' %}">Speed List</a>
-<a class="dropdown-item" href="{% url 'productlist' %}">Product List</a>
+<a class="dropdown-item" href="{% url 'linelist' %}">Line List</a>
 <a class="dropdown-item" href="{% url 'materiallist' %}">Material List</a>
 <a class="dropdown-item" href="{% url 'bomlist' %}">BOM List</a>
 <a class="dropdown-item" href="{% url 'productionlist' %}">Production List</a>
 <a class="dropdown-item" href="{% url 'dispatchlist' %}">Dispatch List</a>
 <a class="dropdown-item" href="{% url 'customerlist' %}">Customer List</a>
+<a class="dropdown-item" href="{% url 'wcgrouplist' %}">WC Group List</a>
+<a class="dropdown-item" href="{% url 'routinglist' %}">Routing List</a>
 <a class="dropdown-item" href="{% url 'wplist' %}">Without Plan List</a>
 </div>
 </li>
@@ -66,9 +69,11 @@
 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Update</a>
 <div class="dropdown-menu pt-0 mt-0">
 <a class="dropdown-item" href="{% url 'soupdate' %}">SO</a>
-<a class="dropdown-item" href="{% url 'productupdate' %}">Product</a>
 <a class="dropdown-item" href="{% url 'dispatchupdate' %}">Dispatch</a>
 <a class="dropdown-item" href="{% url 'productionupdate' %}">Production</a>
+<a class="dropdown-item" href="{% url 'lineupdate' %}">Line</a>
+<a class="dropdown-item" href="{% url 'materialupdate' %}">Material</a>
+<a class="dropdown-item" href="{% url 'bomupdate' %}">BOM</a>
 </li>
 <li class="nav-item dropdown">
 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Reports</a>

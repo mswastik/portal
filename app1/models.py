@@ -15,35 +15,36 @@ class Customer(models.Model):
     def __str__(self):              # __unicode__ on Python 2
         return self.customer
 
-class Product(models.Model):
-    code = models.CharField(max_length=15,unique=True,verbose_name='Code')
-    desc = models.CharField(max_length=60)
+class Material(models.Model):
+    code = models.CharField(max_length=15,unique=True)
+    desc = models.CharField(max_length=45)
+    rate = models.DecimalField(max_digits=9,decimal_places=3,null=True,blank=True)
+    uom = models.CharField(max_length=3)
+    lead_time = models.IntegerField(default=0,null=True,blank=True)
+    classification = models.CharField(max_length=10,choices=material_choices,null=True,blank=True)
     case_size = models.IntegerField(blank=True,null=True)
-    bulk_code = models.CharField(max_length=9,null=True,blank=True)
     micro = models.BooleanField(blank=True,null=True)
-    carton = models.BooleanField(blank=True,null=True)
-    stripe = models.BooleanField(blank=True,null=True)
     bus_category = models.CharField(max_length=15,choices=bus_cat_choices,blank=True,null=True)
-    prod_category = models.CharField(max_length=25,choices=category_choices)
+    prod_category = models.CharField(max_length=25,choices=category_choices,blank=True,null=True)
     gr_wt = models.DecimalField(max_digits=9,decimal_places=4,blank=True,null=True)
     nt_wt = models.DecimalField(max_digits=9,decimal_places=4,blank=True,null=True)
-    plant = models.CharField(max_length=4,choices=plant_choices)
+    plant = models.CharField(max_length=4,choices=plant_choices,blank=True,null=True)
     customer = models.ForeignKey(Customer,on_delete=models.SET_NULL,blank=True,null=True)
     des_code = models.CharField(max_length=15,blank=True,null=True)
     cust_code = models.CharField(max_length=15,blank=True,null=True)
     pts = models.DecimalField(max_digits=9,decimal_places=4,blank=True,null=True)
     cbm = models.DecimalField(max_digits=9,decimal_places=4,blank=True,null=True)
-    class Meta:
-        verbose_name = _('Product')
-        verbose_name_plural = _('Products')
+    remarks = models.CharField(max_length=15,blank=True,null=True)
     def __str__(self):              # __unicode__ on Python 2
         return '{} - {}'.format(self.code,self.desc)
+    def get_absolute_url(self):
+        return "/app1/materialdetail/%i" % self.id
  
 class So(models.Model):
     so = models.CharField(max_length=25,verbose_name="Sales Order")
     so_date = models.DateField()
     so_del_date = models.DateField()
-    fgcode = models.ForeignKey(Product,on_delete=models.SET_NULL,null=True)
+    code = models.ForeignKey(Material,on_delete=models.SET_NULL,null=True)
     so_qty = models.DecimalField(default=0,max_digits=7,decimal_places=1)
     closed = models.BooleanField(verbose_name='Closed')
     commit_disp_date = models.DateField(null=True,blank=True)
@@ -54,7 +55,7 @@ class So(models.Model):
     customer = models.ForeignKey(Customer,on_delete=models.SET_NULL,null=True)
     remarks = models.CharField(max_length=45,blank=True,null=True)
     def __str__(self):              # __unicode__ on Python 2
-        return '{} - {} - {}'.format(self.so,self.fgcode,self.so_qty)
+        return '{} - {} - {}'.format(self.so,self.code,self.so_qty)
     def get_absolute_url(self):
         return "/app1/sodetail/%i" % self.id
     
@@ -65,39 +66,19 @@ class Calendar(models.Model):
     def __str__(self):              # __unicode__ on Python 2
         return self.date
 
-class Material(models.Model):
-    code = models.CharField(max_length=12,unique=True)
-    desc = models.CharField(max_length=45)
-    rate = models.DecimalField(max_digits=9,decimal_places=3,null=True,blank=True)
-    uom = models.CharField(max_length=3)
-    lead_time = models.IntegerField(default=0,null=True,blank=True)
-    classification = models.CharField(max_length=10,choices=material_choices,null=True,blank=True)
-    def __str__(self):              # __unicode__ on Python 2
-        return '{} - {}'.format(self.code,self.desc)
-    def get_absolute_url(self):
-        return "/app1/materialdetail/%i" % self.id
-
 
 class BOM(models.Model):
-    fgcode = models.ForeignKey(Product,on_delete=models.SET_NULL,null=True)
-    bomversion = models.IntegerField(default=1)
-    material_code = models.ForeignKey(Material,related_name='bom',on_delete=models.SET_NULL,null=True)
+    code = models.ForeignKey(Material,on_delete=models.SET_NULL,null=True,blank=True)
+    bom_version = models.IntegerField()
+    ccode = models.ForeignKey(Material,related_name='bom_ccode',on_delete=models.SET_NULL,null=True,verbose_name='component',to_field='id',blank=True)
     qty = models.DecimalField(max_digits=11,decimal_places=4)
-    uom = models.CharField(max_length=3,choices=uom_choices,default='NO')
+    uom = models.CharField(max_length=3,choices=uom_choices,blank=True)
     bom_type = models.CharField(max_length=4,choices=bom_choices)
-    active = models.BooleanField()
+    active = models.BooleanField(verbose_name='active')
     def __str__(self):              # __unicode__ on Python 2
         return '{}'.format(self.bomversion)
     def get_absolute_url(self):
         return "/app1/bomdetail/%i" % self.id
-
-class StockFG(models.Model):
-    material_code = models.ForeignKey(Product,on_delete=models.SET_NULL,null=True)
-    qty_released = models.DecimalField(max_digits=9,decimal_places=2)
-    qty_quality = models.DecimalField(max_digits=9,decimal_places=2)
-    uom = models.CharField(max_length=3)
-    #def __str__(self):              # __unicode__ on Python 2
-    #    return str(material_code,self.qty_released)
 
 class Stock(models.Model):
     material_code = models.ForeignKey(Material,on_delete=models.SET_NULL,null=True)
@@ -108,9 +89,11 @@ class Stock(models.Model):
     #    return self.material_code
 
 class Line(models.Model):
-    line = models.CharField(max_length=3,unique=True)
+    line = models.CharField(max_length=4,unique=True)
     plant = models.CharField(max_length=4,choices=plant_choices)
     prod_category = models.CharField(max_length=25,choices=category_choices)
+    capacity = models.DecimalField(max_digits=9,decimal_places=4,null=True,blank=True)
+    uom = models.CharField(max_length=3,null=True,blank=True)
     def __str__(self):              # __unicode__ on Python 2
         return self.line
         
@@ -132,11 +115,25 @@ class Dispatch(models.Model):
         return '{} - {}'.format(self.so,self.dis_qty)
 
 class Speed(models.Model):
-    code = models.ForeignKey(Product,on_delete=models.SET_NULL,null=True,to_field='code')
+    code = models.ForeignKey(Material,on_delete=models.SET_NULL,null=True,to_field='code')
     line = models.ForeignKey(Line,on_delete=models.SET_NULL,null=True,to_field='line')
     speed = models.FloatField()
+    manpower = models.DecimalField(max_digits=7,decimal_places=4,null=True,blank=True)
     def __str__(self):              # __unicode__ on Python 2
         return str(self.speed)
+
+class WCGroup(models.Model):
+    wcgrp = models.CharField(max_length=5)
+    cap = models.DecimalField(max_digits=9,decimal_places=4,null=True,blank=True)
+    #line = models.ForeignKey(Line,on_delete=models.SET_NULL,null=True,to_field='line')
+    def __str__(self):              # __unicode__ on Python 2
+        return str(self.wcgrp)
+        
+class Routing(models.Model):
+    code = models.ForeignKey(Material,on_delete=models.SET_NULL,null=True)
+    wcgrp = models.ForeignKey(WCGroup,on_delete=models.SET_NULL,null=True)
+    def __str__(self):              # __unicode__ on Python 2
+        return str(self.code)
 
 class Plan(models.Model):
     so = models.ForeignKey(So,on_delete=models.CASCADE, null=True,to_field='id', related_name='plan')

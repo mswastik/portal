@@ -80,6 +80,8 @@ country_choices = (
 )
 
 material_choices = (
+    ("FG", "FG"),
+    ("Bulk", "Bulk"),
     ("Tube", "Tube"),
     ("Carton", "Carton"),
     ("CFB", "CFB"),

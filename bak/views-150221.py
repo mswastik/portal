@@ -38,7 +38,6 @@ from django.db.models import F,Subquery, OuterRef
 from dal import autocomplete
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.db.models.functions import Coalesce
 
 # Create your views here.
 def index(request):
@@ -64,8 +63,8 @@ class OpenSoWidget(ModelSelect2Widget):
 
 @permission_required("app1.add_so",login_url='/accounts/login/')   
 def SoCreate(request):
-    SoFormSet = modelformset_factory(So, fields=('so','code','so_date','so_del_date','closed','customer','so_qty'), extra=9,
-					widgets={'code': autocomplete.ModelSelect2(url='product-autocomplete'),'so_date': DateInput(),'so_del_date': DateInput()})
+    SoFormSet = modelformset_factory(So, fields=('so','fgcode','so_date','so_del_date','closed','customer','so_qty'), extra=9,
+					widgets={'fgcode': autocomplete.ModelSelect2(url='product-autocomplete'),'so_date': DateInput(),'so_del_date': DateInput()})
     helper = SoForm.helper
     helper.field_class = 'input-group-sm form-control-sm mt-0'
 
@@ -79,7 +78,7 @@ def SoCreate(request):
 
 @permission_required("app1.add_line",login_url='/accounts/login/')  
 def LineCreate(request):
-    LineFormset = modelformset_factory(Line,fields=('__all__'),extra=6)
+    LineFormset = modelformset_factory(Line,fields=('__all__'))
     helper = LineForm.helper
     if request.method == 'POST':
         formset = LineFormset(request.POST)
@@ -157,7 +156,7 @@ def CustomerCreate(request):
     
 @permission_required("app1.add_bom",login_url='/accounts/login/')  
 def BOMCreate(request):
-    BOMFormset = modelformset_factory(BOM,fields=('__all__'),extra=7,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),'material_code':autocomplete.ModelSelect2(url='material-autocomplete')})
+    BOMFormset = modelformset_factory(BOM,fields=('__all__'),extra=7,widgets={'fgcode':autocomplete.ModelSelect2(url='product-autocomplete'),'material_code':autocomplete.ModelSelect2(url='material-autocomplete')})
     helper = BOMForm.helper
     if request.method == 'POST':
         formset = BOMFormset(request.POST)
@@ -187,40 +186,10 @@ def MaterialCreate(request):
     context = {'formset': formset,'helper':helper}
     return render(request,'app1/create_form.html',context)
 
-def WCGroupCreate(request):
-    WCGroupFormset = modelformset_factory(WCGroup,fields=('__all__'),extra=7)
-    helper = WCGroupForm.helper
-    if request.method == 'POST':
-        formset = WCGroupFormset(request.POST)
-        for form in formset:
-            if form.is_valid() and form.has_changed():
-                form.save()
-            else:
-                formset = WCGroupFormset(queryset=WCGroup.objects.none())
-    else:
-        formset = WCGroupFormset(queryset=WCGroup.objects.none())
-    context = {'formset': formset,'helper':helper}
-    return render(request,'app1/create_form.html',context)
-
-def RoutingCreate(request):
-    RoutingFormset = modelformset_factory(Routing,fields=('__all__'),extra=7,widgets={'code':autocomplete.ModelSelect2(url='material-autocomplete')})
-    helper = RoutingForm.helper
-    if request.method == 'POST':
-        formset = RoutingFormset(request.POST)
-        for form in formset:
-            if form.is_valid() and form.has_changed():
-                form.save()
-            else:
-                formset = RoutingFormset(queryset=Routing.objects.none())
-    else:
-        formset = RoutingFormset(queryset=Routing.objects.none())
-    context = {'formset': formset,'helper':helper}
-    return render(request,'app1/create_form.html',context)
-
 @permission_required("app1.change_so",login_url='/accounts/login/')  
 def SoUpdate(request):
-    fields=('code','so','so_date','so_del_date','commit_disp_date','so_qty','closed','remarks')
-    SoUpFormset = modelformset_factory(So,fields=fields,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete')},can_delete=True)
+    fields=('fgcode','so','so_date','so_del_date','commit_disp_date','so_qty','closed','remarks')
+    SoUpFormset = modelformset_factory(So,fields=fields,widgets={'fgcode':autocomplete.ModelSelect2(url='product-autocomplete')},can_delete=True)
     helper = SoForm1.helper
     f = SoFilter(request.GET, queryset=So.objects.all())
     paginator = Paginator(f.qs, 25,)
@@ -230,15 +199,15 @@ def SoUpdate(request):
     page_query = query.filter(id__in=[object.id for object in page_obj])
     if request.method == 'POST':
         formset = SoUpFormset(request.POST)
-        #for form in formset:
-        #    if form.is_valid() and form.has_changed():
-        if formset.is_valid():
-            formset.save()
-        if not formset.is_valid():
-            print(formset.errors)
-            messages.error(request, "Please correct the errors below and resubmit.")
-        else:
-            formset = SoUpFormset(queryset=page_query)
+        for form in formset:
+            if form.is_valid() and form.has_changed():
+        #if formset.is_valid():
+                form.save()
+            if not form.is_valid():
+                print(form.errors)
+                messages.error(request, "Please correct the errors below and resubmit.")
+            else:
+                formset = SoUpFormset(queryset=page_query)
     else:
         formset = SoUpFormset(queryset=page_query)
     context = {'formset': formset,'helper':helper,'filter': f,'page_obj': page_obj}
@@ -267,29 +236,6 @@ def DispatchUpdate(request):
     context = {'formset': formset,'helper':helper,'filter': f,'page_obj': page_obj}
     return render(request,'app1/update_form.html',context)
 
-@permission_required("app1.change_line",login_url='/accounts/login/')  
-def LineUpdate(request):
-    LineUpFormset = modelformset_factory(Line,fields=('__all__'))
-    helper = LineForm.helper
-    f = LineFilter(request.GET, queryset=Line.objects.all())
-    paginator = Paginator(f.qs, 25,)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    query = f.qs
-    page_query = query.filter(id__in=[object.id for object in page_obj])
-    if request.method == 'POST':
-        formset = LineUpFormset(request.POST)
-        for form in formset:
-            if form.is_valid() and form.has_changed():
-                form.save()
-            else:
-                formset = LineUpFormset(queryset=page_query)
-    else:
-        formset = LineUpFormset(queryset=page_query)
-    context = {'formset': formset,'helper':helper,'filter': f,'page_obj': page_obj}
-    return render(request,'app1/update_form.html',context)
-
-
 @permission_required("app1.change_dispatch",login_url='/accounts/login/')  
 def ProductionUpdate(request):
     ProductionUpFormset = modelformset_factory(Production,fields=('__all__'),can_delete=True,extra=0)
@@ -312,50 +258,6 @@ def ProductionUpdate(request):
     context = {'formset': formset,'helper':helper,'filter': f,'page_obj': page_obj}
     return render(request,'app1/update_form.html',context)
 
-@permission_required("app1.change_material",login_url='/accounts/login/')  
-def MaterialUpdate(request):
-    MaterialUpFormset = modelformset_factory(Material,exclude=('des_code','cbm'),extra=0)
-    helper = MaterialForm.helper
-    f = MaterialFilter(request.GET, queryset=Material.objects.all())
-    paginator = Paginator(f.qs, 25,)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    query = f.qs
-    page_query = query.filter(id__in=[object.id for object in page_obj])
-    if request.method == 'POST':
-        formset = MaterialUpFormset(request.POST)
-        if formset.is_valid():
-            formset.save()
-        else:
-            print(formset.errors)
-            formset = MaterialUpFormset(queryset=page_query)
-    else:
-        formset = MaterialUpFormset(queryset=page_query)
-    context = {'formset': formset,'helper':helper,'filter': f,'page_obj': page_obj}
-    return render(request,'app1/update_form.html',context)
-
-@permission_required("app1.change_bom",login_url='/accounts/login/')  
-def BOMUpdate(request):
-    BOMUpFormset = modelformset_factory(BOM,exclude=('des_code','cbm'),widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),'ccode':autocomplete.ModelSelect2(url='material-autocomplete')},extra=4)
-    helper = BOMForm.helper
-    f = BOMFilter(request.GET, queryset=BOM.objects.all())
-    paginator = Paginator(f.qs, 25,)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    query = f.qs
-    page_query = query.filter(id__in=[object.id for object in page_obj])
-    if request.method == 'POST':
-        formset = BOMUpFormset(request.POST)
-        if formset.has_changed() and formset.is_valid():
-            formset.save()
-        else:
-            print(formset.errors)
-            messages.error(request, "Please correct the errors below and resubmit.")
-            formset = BOMUpFormset(queryset=page_query)
-    else:
-        formset = BOMUpFormset(queryset=page_query)
-    context = {'formset': formset,'helper':helper,'filter': f,'page_obj': page_obj}
-    return render(request,'app1/update_form.html',context)
 
 class SoDetail1(UpdateView):
     model = So
@@ -437,25 +339,25 @@ class ProductionDetail(UpdateView):
         form.helper.add_input(Submit('submit', 'Update', css_class='btn-primary'))
         return form'''
 
-class DispatchDetail(UpdateView):
+class DispatchDetail(DeletionMixin,UpdateView):
     model = Dispatch
     template_name = 'app1/form.html'
     #fields='__all__'
     form_class = DispatchForm1
     def get_success_url(self):
         return reverse_lazy('dispatchlist')
-    #def post(self, request, pk):
-    #    if 'confirm_delete' in self.request.POST:
-     #       return self.delete(request)
-    #def form_valid(self, form, pk):
-    #    if 'confirm_post' in self.request.POST:
-    #        form.instance.user = self.request.user
-    #    return super(DispatchDetail, self).form_valid(form)
+    def post(self, request, pk):
+        if 'confirm_delete' in self.request.POST:
+            return self.delete(request)
+    def form_valid(self, form, pk):
+        if 'confirm_post' in self.request.POST:
+            form.instance.user = self.request.user
+        return super(DispatchDetail, self).form_valid(form)
 
         
-def BOMDetail(request,code_id=None):
+def BOMDetail(request,fgcode_id=None):
     #model = BOM
-    bomformset=modelformset_factory(BOM,fields=('__all__'),can_delete=True,extra=0,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),'ccode':autocomplete.ModelSelect2(url='material-autocomplete')})
+    bomformset=modelformset_factory(BOM,fields=('__all__'),can_delete=True,extra=0,widgets={'fgcode':autocomplete.ModelSelect2(url='product-autocomplete'),'material_code':autocomplete.ModelSelect2(url='material-autocomplete')})
     template_name = 'app1/update_form.html'
     fields='__all__'
     helper = BOMForm.helper
@@ -465,9 +367,9 @@ def BOMDetail(request,code_id=None):
             formset.save()
         else:
             print(formset.errors)
-            formset = bomformset(queryset=BOM.objects.filter(code_id=code_id))
+            formset = bomformset(queryset=BOM.objects.filter(fgcode_id=fgcode_id))
     else:
-        formset = bomformset(queryset=BOM.objects.filter(code_id=code_id))
+        formset = bomformset(queryset=BOM.objects.filter(fgcode_id=fgcode_id))
     context = {'formset': formset,'helper':helper}
     return render(request,'app1/update_form.html',context)
 
@@ -491,7 +393,7 @@ class SoDetail(UpdateView):
         form.helper.add_input(Submit('submit', 'Update', css_class='btn-primary'))
         return form
 
-class MaterialDetail(UpdateView):
+class MaterialDetail(DeletionMixin,UpdateView):
     model = Material
     template_name = 'app1/form.html'
     fields='__all__'
@@ -503,9 +405,9 @@ class MaterialDetail(UpdateView):
         context['form'] = MaterialForm(instance=self.object) 
         return context
     # Working delete Button
-    #def post(self, request, pk):
-    #    if 'confirm_delete' in self.request.POST:
-    #        return self.delete(request)
+    def post(self, request, pk):
+        if 'confirm_delete' in self.request.POST:
+            return self.delete(request)
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.helper = FormHelper()
@@ -519,20 +421,6 @@ class LineDetail(UpdateView):
     model = Line
     template_name = 'app1/form.html'
     fields='__all__'
-
-class WCGroupDetail(UpdateView):
-    model = WCGroup
-    template_name = 'app1/form.html'
-    fields='__all__'
-    def get_success_url(self):
-        return reverse_lazy('wcgrouplist')
-        
-class RoutingDetail(UpdateView):
-    model = Routing
-    template_name = 'app1/form.html'
-    fields='__all__'
-    def get_success_url(self):
-        return reverse_lazy('routinglist')
 
 class SoList(SingleTableMixin,ExportMixin,FilterView):
     model = So
@@ -602,22 +490,11 @@ class DispatchList(SingleTableMixin,ExportMixin,FilterView):
     table_class = DispatchTable
     filterset_class = DispatchFilter
 
-class WCGroupList(SingleTableMixin,ExportMixin,FilterView):
-    model = WCGroup
-    template_name = 'app1/list.html'
-    table_class = WCGroupTable
-    #filterset_class = DispatchFilter
-
-class RoutingList(SingleTableMixin,ExportMixin,FilterView):
-    model = Routing
-    template_name = 'app1/list.html'
-    table_class = RoutingTable
-    filterset_class = RoutingFilter
 
 def visualization(request):
     pp = Plan.objects.values()
     df = pd.DataFrame(pp)
-    ss = So.objects.values('id','so','so_del_date','code','so_qty','closed')
+    ss = So.objects.values('id','so','so_del_date','fgcode','so_qty','closed')
     df1 = pd.DataFrame(ss)
     df1 = df1.loc[df1.closed==0]
     df = pd.merge(df1,df,how='left',left_on='id',right_on='so_id')
@@ -720,8 +597,7 @@ def matreq(request):
             LEFT JOIN app1_so s ON (s.fgcode_id = f.id)
             WHERE s.closed=FALSE AND b.active=TRUE GROUP BY m.code,m.desc")
     '''
-    qs = BOM.objects.order_by().values('ccode').distinct().filter(code__so__closed=False).values('code_id','ccode__code','ccode__desc','code__code','code__desc','code__so__so','qty',
-    'uom').annotate(bal_so_qty=F('code__so__so_qty')-Coalesce(Sum(F('code__so__dispatch__dis_qty')),0),req=F('qty')*F('bal_so_qty'))
+    qs = BOM.objects.order_by().values('ccode').distinct().values('code_id','ccode__code','code__code','code__desc','qty','code__so__so_qty')
     #print(qs)
     #qs = Material.objects.filter(pk__in=[x.pk for x in rqs])
     f = BOMFilter(request.GET, queryset=qs)
@@ -731,7 +607,7 @@ def matreq(request):
     return render(request, "app1/list.html", {"table": table,"filter":f})
     
 def openso(request):
-    qs= So.objects.filter(closed=False).annotate(production_sum=Sum('production__prod_qty')
+    qs= So.objects.filter(closed=False).annotate(production_sum=Sum('production__prod_qty'),prod_balance=F('so_qty')-F('production_sum')
     ,dispatch_sum=Subquery(Dispatch.objects.filter(so=OuterRef('pk')).values('so').annotate(the_sum=Sum('dis_qty'),).values('the_sum')[:1]))
     f = SoFilter(request.GET, queryset=qs)
     paginate_by = 25
@@ -752,26 +628,22 @@ def session_state_view(request, template_name, **kwargs):
     qs = So.objects.all()
     ff=[f.name for f in So._meta.get_fields()]
     ff.extend(['code__'+k.name for k in Material._meta.get_fields()])
-    #print([k.name for k in Material._meta.get_fields()])
-    ff.extend(['code__routing__wcgrp__wcgrp','code__routing__wcgrp__cap'])
     for i in ['code__so','code__id','act_disp_date','commit_disp_date','currency','act_disp_qty','rate','production','dispatch','plan','code',
-            'code__des_code','code__customer','code__bom_ccode','code__stock','code__routing','code__rate','code__uom','code__lead_time','code__classification','code__cust_code','code__cbm','remarks','code__gr_wt','code__speed','code__bom']:
+            'code__des_code','code__customer','code__cust_code','code__cbm','remarks','code__gr_wt','code__speed','code__bom']:
         ff.remove(i)
     df = read_frame(qs,fieldnames=ff,coerce_float=True,index_col='id')
     df['so_del_date']=pd.to_datetime(df['so_del_date'],format='%Y-%m-%d')
     df['so_date']=pd.to_datetime(df['so_date'],format='%Y-%m-%d')
-    df.rename(columns={'code__routing__wcgrp__wcgrp':'wc','code__routing__wcgrp__cap':'cap'},inplace=True)
-    df['shift']=df['so_qty']*df['code__case_size']/df['cap']/8/0.68
-    #print(df.columns)
     app.layout = html.Div([dbc.Row([
+            dbc.Col(dcc.Dropdown(
+            id='dropdown',options=[{'label':i,'value':i} for i in df['code__bus_category'].unique()], value='IBD',multi=True)),
             dbc.Col(dcc.Dropdown(
             id='frequency', options=[{'label':i,'value':i} for i in ['D','W','M']],value='M')),
             dbc.Col(dcc.Dropdown(
             id='date',options=[{'label':i,'value':i} for i in ['so_date','so_del_date']], value='so_del_date')),
-            #dbc.Col(dcc.Dropdown(
-            #id='line',options=[{'label':i,'value':i} for i in df['code__prod_category'].unique()], value='Toothpaste',multi=True)),
-            dcc.DatePickerRange(id='daterange',start_date=df['so_date'].min(),end_date=df['so_del_date'].max(),calendar_orientation='vertical',persisted_props=[df['so_date'].min(),df['so_del_date'].max()])  
-            ],className='mr-3 mt-3'),
+            dbc.Col(dcc.Dropdown(
+            id='line',options=[{'label':i,'value':i} for i in df['code__prod_category'].unique()], value='Toothpaste',multi=True)),
+            ],className='mt-3'),
         dcc.Graph(id='graph-with-slider'),
         dash_table.DataTable(
             id='datatable-interactivity',
@@ -796,53 +668,43 @@ def session_state_view(request, template_name, **kwargs):
     @app.callback(
          dash.dependencies.Output('graph-with-slider', 'figure'),
         [dash.dependencies.Input('frequency', 'value'),
+         dash.dependencies.Input('dropdown', 'value'),
          dash.dependencies.Input('date', 'value'),
-         dash.dependencies.Input('daterange', 'start_date'),
-         dash.dependencies.Input('daterange', 'end_date')]
+         dash.dependencies.Input('line', 'value')]
         )
-    def callback_color(freq_value,date,startdate,enddate):
-        #print(fdf)
-        fdf=df[df[date]>startdate]
-        fdf=fdf[fdf[date]<enddate]
+    def callback_color(freq_value,dropdown_value,date,line):
+        if type(dropdown_value)==str:
+            fdf = df[df['code__bus_category'].isin([dropdown_value[0:]])]
+        else:
+            fdf = df[df['code__bus_category'].isin(dropdown_value[0:])]
+        if type(line)==str:
+            fdf = fdf[fdf['code__prod_category'].isin([line[0:]])]
+        else:
+            fdf = fdf[fdf['code__prod_category'].isin(line[0:])]
         fdf.set_index(date,inplace=True)
-        #fdf=fdf.resample(freq_value).sum()
-        fdf=fdf.groupby([pd.Grouper(freq=freq_value),'wc']).agg('sum')
-        fdf.reset_index(inplace=True)
-        fdf.set_index(date,inplace=True)
-        fig = px.bar(fdf,y="shift",facet_row="wc",height=900)
-        for annotation in fig['layout']['annotations']: 
-            annotation['textangle']= 0
-        fig.update_yaxes(matches=None)
-        fig.update_layout(transition_duration=500)
+        fdf=fdf.resample(freq_value).sum()
+        fig = px.bar(fdf,x=fdf.index,y="so_qty")
+        fig.update_layout(transition_duration=1100)
         return fig
     
     @app.callback(
         dash.dependencies.Output('datatable-interactivity','data'),
-        [dash.dependencies.Input('graph-with-slider', 'clickData'),
-          dash.dependencies.Input('date', 'value'),
-          dash.dependencies.Input('frequency', 'value')]
+        [dash.dependencies.Input('graph-with-slider', 'clickData')]
         )
-    def on_trace_click(click_data,date,freq):
+    def on_trace_click(click_data):
         """Listen to click events and update table, passing filtered rows"""
+        #print(click_data)
         p = click_data['points'][0]
         # here, use 'customdata' property of clicked point, 
         # could also use 'curveNumber', 'pointIndex', etc.
-        key=pd.to_datetime(0)
         if 'x' in p:
-            key = pd.to_datetime(p['x'])
-        df_f = get_corresponding_rows(df, key,date,freq)
+            key = p['x']
+            print(p['x'])
+        df_f = get_corresponding_rows(df, key)
         return df_f.to_dict('records')
 
-    def get_corresponding_rows(df, my_key,date,freq):
+    def get_corresponding_rows(df, my_key):
         """Filter df, return rows that match my_key"""
-        #df.set_index(date,inplace=True)
-        ret = pd.DataFrame()
-        if freq=='M':
-            ret = df.loc[(df[date].dt.month == my_key.month) & (df[date].dt.year == my_key.year)]
-        elif freq=='W':
-            ret= df.loc[(df[date].dt.week == my_key.week) & (df[date].dt.week == my_key.week)]
-        else:
-            ret= df.loc[df[date] == my_key]
-        return ret
+        return df[df['so_del_date'] == my_key]
         
     return render(request, template_name=template_name,)

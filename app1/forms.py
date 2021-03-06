@@ -1,7 +1,7 @@
 from django import forms
 from .models import *
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit,Layout,Div,Field,Fieldset,HTML,ButtonHolder,Row,Button
+from crispy_forms.layout import Submit,Layout,Div,Field,Fieldset,HTML,ButtonHolder,Row,Button,Column
 from crispy_forms.bootstrap import InlineField,FormActions
 from django.forms.models import inlineformset_factory,BaseInlineFormSet
 from .custom_layout_object import Formset
@@ -30,6 +30,15 @@ class PlanForm(forms.ModelForm):
     helper.form_method = 'post'
     helper.add_input(Submit('submit', 'Submit Plan'))
 
+class WCGroupForm(forms.ModelForm):
+    class Meta:
+        model = WCGroup
+        exclude=()
+    helper = FormHelper()
+    helper.template = 'bootstrap4/table_inline_formset.html'    
+    helper.form_method = 'post'
+    helper.add_input(Submit('submit', 'Submit'))
+
 class LineForm(forms.ModelForm):
     class Meta:
         model = Line
@@ -47,18 +56,6 @@ class SpeedForm(forms.ModelForm):
     helper.template = 'bootstrap4/table_inline_formset.html'   
     helper.add_input(Submit('submit', 'Submit'))
     helper.form_method = 'post'
-
-class ProductForm(forms.ModelForm):
-    class Meta:
-        model = Product
-        exclude=()
-    helper = FormHelper()
-    helper.template = 'bootstrap4/table_inline_formset.html'
-    #helper.field_class = 'form-group-sm form-control-sm input-sm'
-    #helper.form_class = 'form-group-sm form-control-sm input-sm'
-    #helper.label_class = 'form-group-sm form-control-sm input-sm'    
-    helper.form_method = 'post'
-    helper.add_input(Submit('submit', 'Submit'))
 
 class ProductionForm(forms.ModelForm):
     class Meta:
@@ -137,6 +134,17 @@ class SoForm1(forms.ModelForm):
 class BOMForm(forms.ModelForm):
     class Meta:
         model = BOM
+        exclude=()
+    helper = FormHelper()
+    #helper.template = 'bootstrap4/table_inline_formset.html'
+    helper.form_method = 'post'
+    helper.layout = Layout(Row(Column('code',css_class='col-sm-3'),Column('ccode',css_class='col-sm-4'),Column('bom_version'),Column('qty'),Column('uom'),Column('bom_type'),Column('active'),css_class='form-row'))
+    helper.add_input(Submit('submit', 'Submit'))
+    #FilteredSelectMultiple("verbose name", is_stacked=False)
+
+class RoutingForm(forms.ModelForm):
+    class Meta:
+        model = Routing
         exclude=()
     helper = FormHelper()
     helper.template = 'bootstrap4/table_inline_formset.html'

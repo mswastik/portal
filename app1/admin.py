@@ -6,15 +6,8 @@ from import_export.widgets import ForeignKeyWidget
 #from ra.admin.admin import ra_admin_site, EntityAdmin, TransactionAdmin, TransactionItemAdmin
 
 # Register your models here.
-from .models import Product,So,Calendar,BOM,Stock,StockFG,Material,Production,Line,Speed,Plan,Customer
+from .models import So,Calendar,BOM,Stock,Material,Production,Line,Speed,Plan,Customer,Dispatch,WCGroup,Routing
 
-class ProductResource(resources.ModelResource):
-    class Meta:
-        model = Product
-        exclude = ()
-        skip_unchanged = True
-        report_skipped = True
-        import_id_fields = ('code',)
 
 class SOResource(resources.ModelResource):
     class Meta:
@@ -46,12 +39,6 @@ class BOMResource(resources.ModelResource):
         skip_unchanged = True
         report_skipped = True
 
-class StockFGResource(resources.ModelResource):
-    class Meta:
-        model = StockFG
-        skip_unchanged = True
-        report_skipped = True
-
 class StockResource(resources.ModelResource):
     class Meta:
         model = Stock
@@ -76,6 +63,24 @@ class ProductionResource(resources.ModelResource):
         skip_unchanged = True
         report_skipped = True
 
+class DispatchResource(resources.ModelResource):
+    class Meta:
+        model = Dispatch
+        skip_unchanged = True
+        report_skipped = True
+        
+class WCGroupResource(resources.ModelResource):
+    class Meta:
+        model = WCGroup
+        skip_unchanged = True
+        report_skipped = True
+
+class RoutingResource(resources.ModelResource):
+    class Meta:
+        model = Routing
+        skip_unchanged = True
+        report_skipped = True
+
 class SpeedResource(resources.ModelResource):
     line = fields.Field(column_name='line',attribute='line',widget=ForeignKeyWidget(Line, 'line'))
     class Meta:
@@ -83,11 +88,6 @@ class SpeedResource(resources.ModelResource):
         fields = ('id', 'code', 'line','speed')
         skip_unchanged = True
         report_skipped = True
-
-    
-
-class ProductAdmin(ImportExportModelAdmin):
-    resource_class = ProductResource
 
 class SOAdmin2(ImportExportModelAdmin):
     resource_class =SOResource
@@ -98,9 +98,6 @@ class CalendarAdmin(ImportExportModelAdmin):
 class BOMAdmin(ImportExportModelAdmin):
     resource_class = BOMResource
 
-class StockFGAdmin(ImportExportModelAdmin):
-    resource_class = StockFGResource
-
 class StockAdmin(ImportExportModelAdmin):
     resource_class = StockResource
 
@@ -109,7 +106,10 @@ class MaterialAdmin(ImportExportModelAdmin):
 
 class ProductionAdmin(ImportExportModelAdmin):
     resource_class = ProductionResource
-    
+
+class DispatchAdmin(ImportExportModelAdmin):
+    resource_class = DispatchResource
+
 class LineAdmin(ImportExportModelAdmin):
     resource_class = LineResource
 
@@ -122,15 +122,22 @@ class SpeedAdmin(ImportExportModelAdmin):
 class CustomerAdmin(ImportExportModelAdmin):
     resource_class = CustomerResource
 
-admin.site.register(Product,ProductAdmin)
+class WCGroupAdmin(ImportExportModelAdmin):
+    resource_class = WCGroupResource
+
+class RoutingAdmin(ImportExportModelAdmin):
+    resource_class = RoutingResource
+    
 admin.site.register(Production,ProductionAdmin)
+admin.site.register(Dispatch,DispatchAdmin)
 admin.site.register(So,SOAdmin2)
 admin.site.register(Calendar,CalendarAdmin)
 admin.site.register(BOM,BOMAdmin)
-admin.site.register(StockFG,StockFGAdmin)
 admin.site.register(Stock,StockAdmin)
 admin.site.register(Material,MaterialAdmin)
 admin.site.register(Speed,SpeedAdmin)
 admin.site.register(Line,LineAdmin)
 admin.site.register(Plan,PlanAdmin)
 admin.site.register(Customer,CustomerAdmin)
+admin.site.register(WCGroup,WCGroupAdmin)
+admin.site.register(Routing,RoutingAdmin)
