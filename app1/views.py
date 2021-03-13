@@ -64,7 +64,7 @@ class OpenSoWidget(ModelSelect2Widget):
 
 @permission_required("app1.add_so",login_url='/accounts/login/')   
 def SoCreate(request):
-    SoFormSet = modelformset_factory(So, fields=('so','code','so_date','so_del_date','closed','customer','so_qty'), extra=9,
+    SoFormSet = modelformset_factory(So, fields=('so','code','so_date','so_del_date','closed','customer','so_qty','rate'), extra=9,
 					widgets={'code': autocomplete.ModelSelect2(url='product-autocomplete'),'so_date': DateInput(),'so_del_date': DateInput()})
     helper = SoForm.helper
     helper.field_class = 'input-group-sm form-control-sm mt-0'
@@ -219,7 +219,7 @@ def RoutingCreate(request):
 
 @permission_required("app1.change_so",login_url='/accounts/login/')  
 def SoUpdate(request):
-    fields=('code','so','so_date','so_del_date','commit_disp_date','so_qty','closed','remarks')
+    fields=('so','code','so_date','so_del_date','so_qty','closed','remarks')
     SoUpFormset = modelformset_factory(So,fields=fields,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete')},can_delete=True)
     helper = SoForm1.helper
     f = SoFilter(request.GET, queryset=So.objects.all())
@@ -250,7 +250,7 @@ def DispatchUpdate(request):
     DispatchUpFormset = modelformset_factory(Dispatch,fields=('__all__'))
     helper = DispatchForm.helper
     f = DispatchFilter(request.GET, queryset=Dispatch.objects.all())
-    paginator = Paginator(f.qs, 25,)
+    paginator = Paginator(f.qs, 25)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     query = f.qs
@@ -336,7 +336,7 @@ def MaterialUpdate(request):
 
 @permission_required("app1.change_bom",login_url='/accounts/login/')  
 def BOMUpdate(request):
-    BOMUpFormset = modelformset_factory(BOM,exclude=('des_code','cbm'),widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),'ccode':autocomplete.ModelSelect2(url='material-autocomplete')},extra=4)
+    BOMUpFormset = modelformset_factory(BOM,exclude=('des_code','cbm'),widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),'ccode':autocomplete.ModelSelect2(url='material-autocomplete')})
     helper = BOMForm.helper
     f = BOMFilter(request.GET, queryset=BOM.objects.all())
     paginator = Paginator(f.qs, 25,)
@@ -455,7 +455,8 @@ class DispatchDetail(UpdateView):
         
 def BOMDetail(request,code_id=None):
     #model = BOM
-    bomformset=modelformset_factory(BOM,fields=('__all__'),can_delete=True,extra=0,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),'ccode':autocomplete.ModelSelect2(url='material-autocomplete')})
+    bomformset=modelformset_factory(BOM,fields=('__all__'),can_delete=True,extra=0,
+                widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),'ccode':autocomplete.ModelSelect2(url='material-autocomplete')})
     template_name = 'app1/update_form.html'
     fields='__all__'
     helper = BOMForm.helper
@@ -613,6 +614,12 @@ class RoutingList(SingleTableMixin,ExportMixin,FilterView):
     template_name = 'app1/list.html'
     table_class = RoutingTable
     filterset_class = RoutingFilter
+
+class ForecastList(SingleTableMixin,ExportMixin,FilterView):
+    model = Forecast
+    template_name = 'app1/list.html'
+    table_class = ForecastTable
+    #filterset_class = RoutingFilter
 
 def visualization(request):
     pp = Plan.objects.values()
@@ -846,3 +853,114 @@ def session_state_view(request, template_name, **kwargs):
         return ret
         
     return render(request, template_name=template_name,)
+    
+def forecast_view(request, template_name, **kwargs):
+    external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+    app = DjangoDash('DjangoSessionState',add_bootstrap_links=True,external_stylesheets=external_stylesheets)
+    qs = So.objects.all()
+    fo = Forecast.objects.all()
+    ff= ['so_del_date','so_qty','code__code','code__desc']
+    df = read_frame(qs,fieldnames=ff,coerce_float=True,index_col='id')
+    df['so_del_date']=pd.to_datetime(df['so_del_date'])
+    df=df.set_index('so_del_date')
+    df=df.groupby(['code__code','code__desc']).resample('M').sum()
+    df.rename(columns={'so_qty':'qty'},inplace=True)
+    df['type']="Actual"
+    foc= ['dem_month','fore_qty','code__code','code__desc']
+    df1 = read_frame(fo,fieldnames=foc,coerce_float=True,index_col='id')
+    df1['dem_month']=pd.to_datetime(df1['dem_month'])
+    df1=df1.set_index('dem_month')
+    df1=df1.groupby(['code__code','code__desc']).resample('M').sum()
+    df1.rename(columns={'fore_qty':'qty'},inplace=True)
+    df1['type']="Forecast"
+    df=df.append(df1)
+    df.reset_index(inplace=True)
+    #df=df.set_index('so_del_date')
+    #print(df)
+    app.layout = html.Div([dbc.Row([
+            dbc.Col(dcc.Dropdown(
+            id='code',options=[{'label':i,'value':i} for i in df['code__code'].unique()], value='FB24910000CA')),
+            dcc.DatePickerRange(id='daterange',start_date=df['so_del_date'].min(),end_date=df['so_del_date'].max(),calendar_orientation='vertical',persisted_props=[df['so_del_date'].min(),df['so_del_date'].max()])  
+            ],className='mr-3 mt-3'),
+        dcc.Graph(id='graph-with-slider'),
+        dash_table.DataTable(
+            id='datatable-interactivity',
+            columns=[
+                {"name": i, "id": i, "deletable": True, "selectable": True} for i in df.columns
+            ],
+            data=df.to_dict('records'),
+            style_cell={'fontSize':17},
+            locale_format={'so_del_date':'datetime'},
+            filter_action="native",
+            sort_action="native",
+            sort_mode="multi",
+            page_action="native",
+            page_current= 0,
+            page_size= 20,
+    ),
+    ])
+    @app.callback(
+         dash.dependencies.Output('graph-with-slider', 'figure'),
+        [dash.dependencies.Input('code', 'value'),
+         dash.dependencies.Input('daterange', 'start_date'),
+         dash.dependencies.Input('daterange', 'end_date')]
+        )
+    def callback_color(code,startdate,enddate):
+        fdf=df[df['so_del_date']>startdate]
+        fdf=fdf[fdf['so_del_date']<enddate]
+        #fdf.set_index(date,inplace=True).resample('M').sum()
+        fdf=fdf[fdf['code__code']==code]
+        print(fdf)
+        fig = px.line(fdf,y="qty",x='so_del_date',height=500,color='type')
+        #for annotation in fig['layout']['annotations']: 
+        #    annotation['textangle']= 0
+        #fig.update_yaxes(matches=None)
+        fig.update_layout(transition_duration=500)
+        return fig
+    
+    @app.callback(
+        dash.dependencies.Output('datatable-interactivity','data'),
+        [dash.dependencies.Input('graph-with-slider', 'clickData'),
+          dash.dependencies.Input('date', 'value'),
+          dash.dependencies.Input('frequency', 'value')]
+        )
+    def on_trace_click(click_data,date,freq):
+        """Listen to click events and update table, passing filtered rows"""
+        p = click_data['points'][0]
+        # here, use 'customdata' property of clicked point, 
+        # could also use 'curveNumber', 'pointIndex', etc.
+        key=pd.to_datetime(0)
+        if 'x' in p:
+            key = pd.to_datetime(p['x'])
+        df_f = get_corresponding_rows(df, key,date,freq)
+        return df_f.to_dict('records')
+
+    def get_corresponding_rows(df, my_key,date,freq):
+        """Filter df, return rows that match my_key"""
+        #df.set_index(date,inplace=True)
+        ret = pd.DataFrame()
+        if freq=='M':
+            ret = df.loc[(df[date].dt.month == my_key.month) & (df[date].dt.year == my_key.year)]
+        elif freq=='W':
+            ret= df.loc[(df[date].dt.week == my_key.week) & (df[date].dt.week == my_key.week)]
+        else:
+            ret= df.loc[df[date] == my_key]
+        return ret
+        
+    return render(request, template_name=template_name,)    
+    
+def forecast(request):
+    qs= So.objects.all()
+        #ff=[f.name for f in So._meta.get_fields()]
+        #ff.extend(['fgcode__'+k.name for k in Product._meta.get_fields()])
+        #ff.remove('fgcode__so')
+    ff= ['so','so_del_date','so_qty','code__id','rate']
+    df = read_frame(qs,fieldnames=ff,coerce_float=True,index_col='id')
+    df['so_del_date']=pd.to_datetime(df['so_del_date'])
+    df['days'] = (df['so_del_date'] - df['so_del_date'].min()).dt.days
+    from .script import genmodel,genforecast
+    if request.method == 'POST' and 'model_script' in request.POST:
+        genmodel(df)
+    if request.method == 'POST' and 'forecast_script' in request.POST:
+        genforecast(df)
+    return render(request, "app1/forecast.html")

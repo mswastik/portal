@@ -44,8 +44,10 @@
 
 <script>
     $.fn.select2.defaults.set( "theme", "bootstrap4");
-	$('myForm').select2({
-    width: '18px'
+	$.fn.select2.defaults.set( "width", "40em");
+	$('.select2').select2({
+    containerCssClass: "input-group-sm form-control-sm",
+    dropdownCssClass: "input-group-sm form-control-sm",
 });
 </script>
 

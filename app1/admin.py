@@ -6,7 +6,7 @@ from import_export.widgets import ForeignKeyWidget
 #from ra.admin.admin import ra_admin_site, EntityAdmin, TransactionAdmin, TransactionItemAdmin
 
 # Register your models here.
-from .models import So,Calendar,BOM,Stock,Material,Production,Line,Speed,Plan,Customer,Dispatch,WCGroup,Routing
+from .models import So,Calendar,BOM,Stock,Material,Production,Line,Speed,Plan,Customer,Dispatch,WCGroup,Routing,Forecast
 
 
 class SOResource(resources.ModelResource):
@@ -81,6 +81,12 @@ class RoutingResource(resources.ModelResource):
         skip_unchanged = True
         report_skipped = True
 
+class ForecastResource(resources.ModelResource):
+    class Meta:
+        model = Forecast
+        skip_unchanged = True
+        report_skipped = True
+
 class SpeedResource(resources.ModelResource):
     line = fields.Field(column_name='line',attribute='line',widget=ForeignKeyWidget(Line, 'line'))
     class Meta:
@@ -128,6 +134,9 @@ class WCGroupAdmin(ImportExportModelAdmin):
 class RoutingAdmin(ImportExportModelAdmin):
     resource_class = RoutingResource
     
+class ForecastAdmin(ImportExportModelAdmin):
+    resource_class = ForecastResource    
+    
 admin.site.register(Production,ProductionAdmin)
 admin.site.register(Dispatch,DispatchAdmin)
 admin.site.register(So,SOAdmin2)
@@ -141,3 +150,4 @@ admin.site.register(Plan,PlanAdmin)
 admin.site.register(Customer,CustomerAdmin)
 admin.site.register(WCGroup,WCGroupAdmin)
 admin.site.register(Routing,RoutingAdmin)
+admin.site.register(Forecast,ForecastAdmin)

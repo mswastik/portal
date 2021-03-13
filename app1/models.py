@@ -50,7 +50,7 @@ class So(models.Model):
     commit_disp_date = models.DateField(null=True,blank=True)
     act_disp_qty = models.IntegerField(default=0,null=True,blank=True)
     act_disp_date = models.DateField(null=True,blank=True)
-    rate = models.DecimalField(max_digits=5,decimal_places=2,blank=True,null=True)
+    rate = models.DecimalField(max_digits=7,decimal_places=2,blank=True,null=True)
     currency = models.CharField(max_length=3,choices=curr_choices,blank=True,null=True)
     customer = models.ForeignKey(Customer,on_delete=models.SET_NULL,null=True)
     remarks = models.CharField(max_length=45,blank=True,null=True)
@@ -144,3 +144,12 @@ class Plan(models.Model):
         return '{} - {} - {}'.format(self.so,self.date,self.line)
     def get_absolute_url(self):
         return "/plan/%i/" % self.id
+        
+class Forecast(models.Model):
+    code = models.ForeignKey(Material, on_delete=models.CASCADE)
+    month = models.DateField(default=datetime.now)
+    version = models.IntegerField()
+    fore_qty = models.DecimalField(max_digits=7,decimal_places=2)
+    dem_month = models.DateField(default=datetime.now)
+    def __str__(self):
+        return '{} - {}'.format(self.code,self.qty)

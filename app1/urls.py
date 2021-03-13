@@ -45,6 +45,7 @@ urlpatterns = [
     path('customerlist/', CustomerList.as_view(), name='customerlist'),
     path('wcgrouplist/', WCGroupList.as_view(), name='wcgrouplist'),
     path('routinglist/', RoutingList.as_view(), name='routinglist'),
+    path('forecastlist/', ForecastList.as_view(), name='forecastlist'),
     path('soform/', SoCreate, name='soform'),
     path('lineform/', LineCreate, name='lineform'),
     path('lineform/', LineCreate, name='lineform'),
@@ -78,6 +79,8 @@ urlpatterns = [
     path('planpivot/', planpivot, name='planpivot'),
     path('matreqpivot/', matreqpivot, name='matreqpivot'),
     path('sodview/',sodview,name='sodview'),
+    path('forecast/',forecast,name='forecast'),
     path('django_plotly_dash/', include('django_plotly_dash.urls')),
     url('^demo-eight', session_state_view, {'template_name':'app1/dash.html'},name="demo-eight"),
+    url('dashforecast', forecast_view, {'template_name':'app1/dash.html'},name="dashforecast"),
 ]

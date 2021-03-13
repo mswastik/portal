@@ -93,6 +93,12 @@ class BOMFilter(django_filters.FilterSet):
         model = BOM
         exclude = ('code','ccode',)
     
+class ForecastFilter(django_filters.FilterSet):
+    code__code = django_filters.CharFilter(lookup_expr='icontains')
+    code__desc = django_filters.CharFilter(lookup_expr='icontains')
+    class Meta:
+        model = Forecast
+        exclude = ('id',)
 
 class MaterialFilter(django_filters.FilterSet):
     desc = django_filters.CharFilter(lookup_expr='icontains')
@@ -182,6 +188,16 @@ class BOMTable(tables.Table):
         attrs = {'class': 'table table-sm'}
     code = tables.Column(linkify={"viewname":"bomdetail", "args":[A("code_id")]})
     material_code = tables.Column(linkify=True)
+    #material_code__material_id = tables.Column()
+
+class ForecastTable(tables.Table):
+    class Meta:
+        model = Forecast
+        #fields = ('bomversion','material_code__material_id','qty')
+        exclude = ('id',)
+        attrs = {'class': 'table table-sm'}
+    #code = tables.Column(linkify={"viewname":"bomdetail", "args":[A("code_id")]})
+    #material_code = tables.Column(linkify=True)
     #material_code__material_id = tables.Column()
 
 class LineTable(tables.Table):
