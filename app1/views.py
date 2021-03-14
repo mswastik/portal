@@ -759,7 +759,6 @@ def session_state_view(request, template_name, **kwargs):
     qs = So.objects.all()
     ff=[f.name for f in So._meta.get_fields()]
     ff.extend(['code__'+k.name for k in Material._meta.get_fields()])
-    #print([k.name for k in Material._meta.get_fields()])
     ff.extend(['code__routing__wcgrp__wcgrp','code__routing__wcgrp__cap'])
     for i in ['code__so','code__id','act_disp_date','commit_disp_date','currency','act_disp_qty','rate','production','dispatch','plan','code',
             'code__des_code','code__customer','code__bom_ccode','code__stock','code__routing','code__rate','code__uom','code__lead_time','code__classification','code__cust_code','code__cbm','remarks','code__gr_wt','code__speed','code__bom']:
@@ -769,14 +768,11 @@ def session_state_view(request, template_name, **kwargs):
     df['so_date']=pd.to_datetime(df['so_date'],format='%Y-%m-%d')
     df.rename(columns={'code__routing__wcgrp__wcgrp':'wc','code__routing__wcgrp__cap':'cap'},inplace=True)
     df['shift']=df['so_qty']*df['code__case_size']/df['cap']/8/0.68
-    #print(df.columns)
     app.layout = html.Div([dbc.Row([
             dbc.Col(dcc.Dropdown(
             id='frequency', options=[{'label':i,'value':i} for i in ['D','W','M']],value='M')),
             dbc.Col(dcc.Dropdown(
             id='date',options=[{'label':i,'value':i} for i in ['so_date','so_del_date']], value='so_del_date')),
-            #dbc.Col(dcc.Dropdown(
-            #id='line',options=[{'label':i,'value':i} for i in df['code__prod_category'].unique()], value='Toothpaste',multi=True)),
             dcc.DatePickerRange(id='daterange',start_date=df['so_date'].min(),end_date=df['so_del_date'].max(),calendar_orientation='vertical',persisted_props=[df['so_date'].min(),df['so_del_date'].max()])  
             ],className='mr-3 mt-3'),
         dcc.Graph(id='graph-with-slider'),
@@ -787,14 +783,10 @@ def session_state_view(request, template_name, **kwargs):
             ],
             data=df.to_dict('records'),
             style_cell={'fontSize':17},
-            #editable=True,
             locale_format={'so_date':'datetime'},
             filter_action="native",
             sort_action="native",
             sort_mode="multi",
-            #column_selectable="single",
-            #row_selectable="multi",
-            #row_deletable=True,
             page_action="native",
             page_current= 0,
             page_size= 20,
@@ -808,11 +800,9 @@ def session_state_view(request, template_name, **kwargs):
          dash.dependencies.Input('daterange', 'end_date')]
         )
     def callback_color(freq_value,date,startdate,enddate):
-        #print(fdf)
         fdf=df[df[date]>startdate]
         fdf=fdf[fdf[date]<enddate]
         fdf.set_index(date,inplace=True)
-        #fdf=fdf.resample(freq_value).sum()
         fdf=fdf.groupby([pd.Grouper(freq=freq_value),'wc']).agg('sum')
         fdf.reset_index(inplace=True)
         fdf.set_index(date,inplace=True)
@@ -832,8 +822,6 @@ def session_state_view(request, template_name, **kwargs):
     def on_trace_click(click_data,date,freq):
         """Listen to click events and update table, passing filtered rows"""
         p = click_data['points'][0]
-        # here, use 'customdata' property of clicked point, 
-        # could also use 'curveNumber', 'pointIndex', etc.
         key=pd.to_datetime(0)
         if 'x' in p:
             key = pd.to_datetime(p['x'])
@@ -842,7 +830,6 @@ def session_state_view(request, template_name, **kwargs):
 
     def get_corresponding_rows(df, my_key,date,freq):
         """Filter df, return rows that match my_key"""
-        #df.set_index(date,inplace=True)
         ret = pd.DataFrame()
         if freq=='M':
             ret = df.loc[(df[date].dt.month == my_key.month) & (df[date].dt.year == my_key.year)]
@@ -855,6 +842,9 @@ def session_state_view(request, template_name, **kwargs):
     return render(request, template_name=template_name,)
     
 def forecast_view(request, template_name, **kwargs):
+    import joblib
+    import datetime
+    from dateutil import relativedelta
     external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
     app = DjangoDash('DjangoSessionState',add_bootstrap_links=True,external_stylesheets=external_stylesheets)
     qs = So.objects.all()
@@ -862,25 +852,14 @@ def forecast_view(request, template_name, **kwargs):
     ff= ['so_del_date','so_qty','code__code','code__desc']
     df = read_frame(qs,fieldnames=ff,coerce_float=True,index_col='id')
     df['so_del_date']=pd.to_datetime(df['so_del_date'])
-    df=df.set_index('so_del_date')
-    df=df.groupby(['code__code','code__desc']).resample('M').sum()
-    df.rename(columns={'so_qty':'qty'},inplace=True)
-    df['type']="Actual"
-    foc= ['dem_month','fore_qty','code__code','code__desc']
+    foc= ['dem_month','fore_qty','code__code','code__desc','month']
     df1 = read_frame(fo,fieldnames=foc,coerce_float=True,index_col='id')
     df1['dem_month']=pd.to_datetime(df1['dem_month'])
-    df1=df1.set_index('dem_month')
-    df1=df1.groupby(['code__code','code__desc']).resample('M').sum()
-    df1.rename(columns={'fore_qty':'qty'},inplace=True)
-    df1['type']="Forecast"
-    df=df.append(df1)
-    df.reset_index(inplace=True)
-    #df=df.set_index('so_del_date')
-    #print(df)
+    df1['month']=pd.to_datetime(df1['month'])
     app.layout = html.Div([dbc.Row([
-            dbc.Col(dcc.Dropdown(
-            id='code',options=[{'label':i,'value':i} for i in df['code__code'].unique()], value='FB24910000CA')),
-            dcc.DatePickerRange(id='daterange',start_date=df['so_del_date'].min(),end_date=df['so_del_date'].max(),calendar_orientation='vertical',persisted_props=[df['so_del_date'].min(),df['so_del_date'].max()])  
+            dbc.Col(dcc.Dropdown(id='code',options=[{'label':i,'value':i} for i in df['code__code'].unique()], value='FB24910000CA')),
+            dbc.Col(dcc.Dropdown(id='month',options=[{'label':i,'value':i} for i in df1['month'].dt.date.unique()], value='')),
+            dcc.DatePickerRange(id='daterange',start_date=df['so_del_date'].min(),end_date=datetime.date.today()+relativedelta.relativedelta(months=+5),calendar_orientation='vertical',persisted_props=[df['so_del_date'].min(),df['so_del_date'].max()])  
             ],className='mr-3 mt-3'),
         dcc.Graph(id='graph-with-slider'),
         dash_table.DataTable(
@@ -889,7 +868,8 @@ def forecast_view(request, template_name, **kwargs):
                 {"name": i, "id": i, "deletable": True, "selectable": True} for i in df.columns
             ],
             data=df.to_dict('records'),
-            style_cell={'fontSize':17},
+            #style_cell={'fontSize':17,'whiteSpace': 'normal','minWidth': '18px', 'width': '80px', 'maxWidth': '110px',},
+            style_cell={'fontSize':17,'whiteSpace': 'normal','height': 'auto',},
             locale_format={'so_del_date':'datetime'},
             filter_action="native",
             sort_action="native",
@@ -902,19 +882,32 @@ def forecast_view(request, template_name, **kwargs):
     @app.callback(
          dash.dependencies.Output('graph-with-slider', 'figure'),
         [dash.dependencies.Input('code', 'value'),
+         dash.dependencies.Input('month', 'value'),
          dash.dependencies.Input('daterange', 'start_date'),
          dash.dependencies.Input('daterange', 'end_date')]
         )
-    def callback_color(code,startdate,enddate):
-        fdf=df[df['so_del_date']>startdate]
+    def callback_color(code,month,startdate,enddate):
+        df2=df.set_index('so_del_date')
+        df2=df2.groupby(['code__code','code__desc']).resample('M').sum()
+        df2.rename(columns={'so_qty':'qty'},inplace=True)
+        df2['type']="Actual"
+        df3=df1[df1['month']==month]
+        df3=df3.set_index('dem_month')
+        df3=df3.groupby(['code__code','code__desc']).resample('M').sum()
+        df3.rename(columns={'fore_qty':'qty'},inplace=True)
+        df3['type']="Forecast"
+        df2=df2.append(df3)
+        df2.reset_index(inplace=True)
+        fdf=df2[df2['so_del_date']>startdate]
         fdf=fdf[fdf['so_del_date']<enddate]
-        #fdf.set_index(date,inplace=True).resample('M').sum()
         fdf=fdf[fdf['code__code']==code]
-        print(fdf)
+        # Calculate prediction interval
+        #sum_errs = arraysum((y - yhat)**2)
+        #stdev = sqrt(1/(len(y)-2) * sum_errs)
+        #interval = 1.96 * stdev
+        #lower, upper = yhat_out - interval, yhat_out + interval
+        
         fig = px.line(fdf,y="qty",x='so_del_date',height=500,color='type')
-        #for annotation in fig['layout']['annotations']: 
-        #    annotation['textangle']= 0
-        #fig.update_yaxes(matches=None)
         fig.update_layout(transition_duration=500)
         return fig
     
@@ -927,8 +920,6 @@ def forecast_view(request, template_name, **kwargs):
     def on_trace_click(click_data,date,freq):
         """Listen to click events and update table, passing filtered rows"""
         p = click_data['points'][0]
-        # here, use 'customdata' property of clicked point, 
-        # could also use 'curveNumber', 'pointIndex', etc.
         key=pd.to_datetime(0)
         if 'x' in p:
             key = pd.to_datetime(p['x'])
@@ -937,7 +928,6 @@ def forecast_view(request, template_name, **kwargs):
 
     def get_corresponding_rows(df, my_key,date,freq):
         """Filter df, return rows that match my_key"""
-        #df.set_index(date,inplace=True)
         ret = pd.DataFrame()
         if freq=='M':
             ret = df.loc[(df[date].dt.month == my_key.month) & (df[date].dt.year == my_key.year)]
@@ -950,17 +940,39 @@ def forecast_view(request, template_name, **kwargs):
     return render(request, template_name=template_name,)    
     
 def forecast(request):
+    import datetime
+    from dateutil import relativedelta
     qs= So.objects.all()
-        #ff=[f.name for f in So._meta.get_fields()]
-        #ff.extend(['fgcode__'+k.name for k in Product._meta.get_fields()])
-        #ff.remove('fgcode__so')
-    ff= ['so','so_del_date','so_qty','code__id','rate']
+    ff= ['so','so_del_date','so_qty','code__id','rate','code__code']
     df = read_frame(qs,fieldnames=ff,coerce_float=True,index_col='id')
     df['so_del_date']=pd.to_datetime(df['so_del_date'])
     df['days'] = (df['so_del_date'] - df['so_del_date'].min()).dt.days
+    df1=df.drop('code__code',axis=1)
+    df1=df.set_index('so_del_date')
+    df1=df1.groupby(['code__id','rate']).resample('M').sum()[['so_qty']]
+    df1=df1.reset_index()
+    df1['year']=df1.so_del_date.dt.year
+    df1['month']=df1.so_del_date.dt.month
+    df1['days'] = (df1['so_del_date'] - df1['so_del_date'].min()).dt.days
+    df3=df1[df1['so_del_date'].dt.date<datetime.date.today()+relativedelta.relativedelta(months=+1)]
+    df5 = df3
+    df5['train']='train'
+    for i in df3['code__id'].unique():
+        rate= df3[df3['code__id']==i].sort_values('days',ascending=False)['rate'].head(1).values[0]
+        tdf=pd.DataFrame()
+        for m in range(0,4):
+            month = (datetime.date.today()+relativedelta.relativedelta(months=+m+1)).month
+            year = (datetime.date.today()+relativedelta.relativedelta(months=+m+1)).year
+            days = (datetime.date.today()+relativedelta.relativedelta(months=+m+1)-df3['so_del_date'].min().date()).days
+            tdf=tdf.append({'code__id':i,'rate':rate,'year':year,'month':month,'days':days,'train':'test'},ignore_index=True)
+        df5=df5.append(tdf)
+    df5['month'] = df5['month'].astype('category')
+    df5['year'] = df5['year'].astype('category')
+    df5['code__id']=df5['code__id'].astype('int')
     from .script import genmodel,genforecast
     if request.method == 'POST' and 'model_script' in request.POST:
-        genmodel(df)
+        genmodel(df5)
     if request.method == 'POST' and 'forecast_script' in request.POST:
-        genforecast(df)
-    return render(request, "app1/forecast.html")
+        genforecast(df5)
+        
+    return render(request, "app1/forecast.html",{"df": df})

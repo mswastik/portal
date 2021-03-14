@@ -2,9 +2,10 @@
 {% load crispy_forms_tags %}
 {% load bootstrap4 %}
 {% block content %}
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<div class=".container">
+<div class="row">
 
 <form method="post">
     {% csrf_token %}
@@ -14,6 +15,14 @@
 <form method="post">
     {% csrf_token %}
     <button class="btn btn-sm btn-primary mt-3 ml-3" type="submit" name="forecast_script">Generate Forecast</button>
+</form>
+
+<form method="POST">
+<select class="form-select mt-3 ml-3" name="item_id">
+{% for in,row in df.iterrows %}
+    <option value="{{ row.code__id }}">{{row.code__code }}</option>
+{% endfor %}
+</select>
 </form>
 
 </div>
