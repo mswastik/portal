@@ -130,6 +130,7 @@ class SoForm1(forms.ModelForm):
     #helper.form_class = 'form-sm'     
     helper.form_method = 'post'
     helper.add_input(Submit('submit', 'Submit'))
+    #helper.layout = Layout(Column('code',css_class='col-sm-3'))
 
 class BOMForm(forms.ModelForm):
     class Meta:

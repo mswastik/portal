@@ -3,6 +3,9 @@
 {% load bootstrap4 %}
 {% load widget_tweaks %}
 {% block content %}
+{% load static %}
+{{ formset.media.js }}
+<link rel="stylesheet" href="{%static 'custom.css' %}" >
 <meta name="viewport" content="initial-scale=1, shrink-to-fit=no">
 {% if filter %}
 <form method="get" class="form-group form-inline mb-2 mt-2">
@@ -14,8 +17,8 @@
     </form>
 {% endif %}
 
-<form id="myForm" action="" class="form-sm" method="post">
-	{{ formset.media.js }}
+<form id="myForm" action="" class="form-group-sm" method="post">
+	
     {% csrf_token %}
 	{% crispy formset helper %}
 </form>
@@ -44,8 +47,8 @@
 
 <script>
     $.fn.select2.defaults.set( "theme", "bootstrap4");
-	$.fn.select2.defaults.set( "width", "40em");
-	$('.select2').select2({
+	$.fn.select2.defaults.set('width','200px');
+	$('.select2').select2({width: "120px",
     containerCssClass: "input-group-sm form-control-sm",
     dropdownCssClass: "input-group-sm form-control-sm",
 });

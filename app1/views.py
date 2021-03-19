@@ -157,7 +157,7 @@ def CustomerCreate(request):
     
 @permission_required("app1.add_bom",login_url='/accounts/login/')  
 def BOMCreate(request):
-    BOMFormset = modelformset_factory(BOM,fields=('__all__'),extra=7,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),'material_code':autocomplete.ModelSelect2(url='material-autocomplete')})
+    BOMFormset = modelformset_factory(BOM,fields=('__all__'),extra=7,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),'ccode':autocomplete.ModelSelect2(url='material-autocomplete')})
     helper = BOMForm.helper
     if request.method == 'POST':
         formset = BOMFormset(request.POST)
@@ -220,7 +220,7 @@ def RoutingCreate(request):
 @permission_required("app1.change_so",login_url='/accounts/login/')  
 def SoUpdate(request):
     fields=('so','code','so_date','so_del_date','so_qty','closed','remarks')
-    SoUpFormset = modelformset_factory(So,fields=fields,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete')},can_delete=True)
+    SoUpFormset = modelformset_factory(So,fields=fields,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete',attrs={'width':'200px'})},can_delete=True)
     helper = SoForm1.helper
     f = SoFilter(request.GET, queryset=So.objects.all())
     paginator = Paginator(f.qs, 25,)
@@ -862,22 +862,6 @@ def forecast_view(request, template_name, **kwargs):
             dcc.DatePickerRange(id='daterange',start_date=df['so_del_date'].min(),end_date=datetime.date.today()+relativedelta.relativedelta(months=+5),calendar_orientation='vertical',persisted_props=[df['so_del_date'].min(),df['so_del_date'].max()])  
             ],className='mr-3 mt-3'),
         dcc.Graph(id='graph-with-slider'),
-        dash_table.DataTable(
-            id='datatable-interactivity',
-            columns=[
-                {"name": i, "id": i, "deletable": True, "selectable": True} for i in df.columns
-            ],
-            data=df.to_dict('records'),
-            #style_cell={'fontSize':17,'whiteSpace': 'normal','minWidth': '18px', 'width': '80px', 'maxWidth': '110px',},
-            style_cell={'fontSize':17,'whiteSpace': 'normal','height': 'auto',},
-            locale_format={'so_del_date':'datetime'},
-            filter_action="native",
-            sort_action="native",
-            sort_mode="multi",
-            page_action="native",
-            page_current= 0,
-            page_size= 20,
-    ),
     ])
     @app.callback(
          dash.dependencies.Output('graph-with-slider', 'figure'),
@@ -910,32 +894,6 @@ def forecast_view(request, template_name, **kwargs):
         fig = px.line(fdf,y="qty",x='so_del_date',height=500,color='type')
         fig.update_layout(transition_duration=500)
         return fig
-    
-    @app.callback(
-        dash.dependencies.Output('datatable-interactivity','data'),
-        [dash.dependencies.Input('graph-with-slider', 'clickData'),
-          dash.dependencies.Input('date', 'value'),
-          dash.dependencies.Input('frequency', 'value')]
-        )
-    def on_trace_click(click_data,date,freq):
-        """Listen to click events and update table, passing filtered rows"""
-        p = click_data['points'][0]
-        key=pd.to_datetime(0)
-        if 'x' in p:
-            key = pd.to_datetime(p['x'])
-        df_f = get_corresponding_rows(df, key,date,freq)
-        return df_f.to_dict('records')
-
-    def get_corresponding_rows(df, my_key,date,freq):
-        """Filter df, return rows that match my_key"""
-        ret = pd.DataFrame()
-        if freq=='M':
-            ret = df.loc[(df[date].dt.month == my_key.month) & (df[date].dt.year == my_key.year)]
-        elif freq=='W':
-            ret= df.loc[(df[date].dt.week == my_key.week) & (df[date].dt.week == my_key.week)]
-        else:
-            ret= df.loc[df[date] == my_key]
-        return ret
         
     return render(request, template_name=template_name,)    
     
