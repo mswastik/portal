@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import _locale
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,7 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost','192.168.1.7','172.26.80.119']
 
-
+_locale._getdefaultlocale = (lambda *args: ['en_US', 'utf8'])
 # Application definition
 
 INSTALLED_APPS = [
