@@ -76,7 +76,7 @@ class BOM(models.Model):
     bom_type = models.CharField(max_length=4,choices=bom_choices)
     active = models.BooleanField(verbose_name='active')
     def __str__(self):              # __unicode__ on Python 2
-        return '{}'.format(self.bomversion)
+        return '{}'.format(self.bom_version)
     def get_absolute_url(self):
         return "/app1/bomdetail/%i" % self.id
 
