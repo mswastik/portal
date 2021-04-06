@@ -19,7 +19,7 @@ from crispy_forms.layout import Submit,Layout,Div,Field,Fieldset,HTML,ButtonHold
 from crispy_forms.bootstrap import InlineField,FormActions
 from django.urls import reverse, reverse_lazy
 from django.db import transaction
-from .custom_layout_object import Formset
+#from .custom_layout_object import Formset
 from django_pandas.io import read_frame
 import dtale
 from django.shortcuts import redirect
@@ -27,9 +27,8 @@ from django.conf import settings
 from django.contrib import messages
 from django_tables2.export.export import TableExport
 from django_tables2.export.views import ExportMixin
-from django.views.generic.dates import MonthArchiveView
 from django import forms
-from django_select2.forms import Select2Widget,ModelSelect2Widget
+#from django_select2.forms import Select2Widget,ModelSelect2Widget
 from datetime import datetime
 from django.contrib.auth.decorators import login_required,permission_required
 from django.db.models import Sum,Count
@@ -39,14 +38,17 @@ from dal import autocomplete
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models.functions import Coalesce
+import plotly.io as pio
 
+pio.templates.default = "plotly_white"
 # Create your views here.
 def index(request):
     model = So
     return render(request,'app1/base.html')
 
 soinlineformset =  inlineformset_factory(So, Plan,form=PlanForm,widgets={'date': DateInput()},extra=5,can_delete=True)
-    
+
+'''    
 class MaterialWidget(ModelSelect2Widget):
     queryset = Material.objects.all()
     search_fields = [
@@ -61,7 +63,7 @@ class OpenSoWidget(ModelSelect2Widget):
         'fgcode__code__icontains',
         'fgcode__desc__icontains',
     ]
-
+'''
 @permission_required("app1.add_so",login_url='/accounts/login/')   
 def SoCreate(request):
     SoFormSet = modelformset_factory(So, fields=('so','code','so_date','so_del_date','closed','customer','so_qty','rate'), extra=9,
@@ -217,6 +219,21 @@ def RoutingCreate(request):
     context = {'formset': formset,'helper':helper}
     return render(request,'app1/create_form.html',context)
 
+def FmodelCreate(request):
+    FmodelFormset = modelformset_factory(Fmodel,exclude=('smape','mae','mase'),extra=7,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete')})
+    helper = FmodelForm.helper
+    if request.method == 'POST':
+        formset = FmodelFormset(request.POST)
+        for form in formset:
+            if form.is_valid() and form.has_changed():
+                form.save()
+            else:
+                formset = FmodelFormset(queryset=Fmodel.objects.none())
+    else:
+        formset = FmodelFormset(queryset=Fmodel.objects.none())
+    context = {'formset': formset,'helper':helper}
+    return render(request,'app1/create_form.html',context)
+
 @permission_required("app1.change_so",login_url='/accounts/login/')  
 def SoUpdate(request):
     fields=('so','code','so_date','so_del_date','so_qty','closed','remarks')
@@ -359,7 +376,6 @@ def BOMUpdate(request):
 
 class SoDetail1(UpdateView):
     model = So
-    #form_class = SoForm
     template_name = 'app1/formmixin.html'
     fields=('id','so','so_date','so_del_date','closed','fgcode','customer','so_qty','act_disp_qty','act_disp_date')
     def get_success_url(self):
@@ -381,14 +397,12 @@ class SoDetail1(UpdateView):
             self.object = form.save()
             if plan.is_valid():
                 plan.instance = self.object
-                #print(plan)
                 plan.save()
         return super(SoDetail, self).form_valid(form)
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.helper = FormHelper()
         form.helper.form_tag = True
-        #form.helper.form_class = 'form-horizontal'
         form.helper.layout = Layout(
                 Row(
                         Field('id'),
@@ -407,54 +421,26 @@ class SoDetail1(UpdateView):
                         Formset('plan')),
                     )
                 )
-        #form.helper.field_class = 'col-md-4'
-        #form.helper.template = 'bootstrap4/table_inline_formset.html
         form.helper.form_method = 'post'
         form.helper.add_input(Submit('submit', 'Update', css_class='btn-primary'))
-        #form.fields['act_disp_date'].widget = DateInput()
         return form
 
 
 class ProductionDetail(UpdateView):
     model = Production
     template_name = 'app1/form.html'
-    #fields='__all__'
     form_class = ProductionForm1
     def get_success_url(self):
         return reverse_lazy('productionlist')
-    '''
-    def get_context_data(self, **kwargs):
-        context = super(ProductionDetail, self).get_context_data(**kwargs)
-        context['helper'] = ProductionDetail.get_form(self).helper
-        context['form'] = ProductionForm(instance=self.object) 
-        return context
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        form.helper = FormHelper()
-        form.helper.label_class = 'mt-3 mr-3'
-        form.helper.field_class = 'mt-3 mr-3'
-        form.helper.form_method = 'post'
-        form.helper.add_input(Submit('submit', 'Update', css_class='btn-primary'))
-        return form'''
 
 class DispatchDetail(UpdateView):
     model = Dispatch
     template_name = 'app1/form.html'
-    #fields='__all__'
     form_class = DispatchForm1
     def get_success_url(self):
         return reverse_lazy('dispatchlist')
-    #def post(self, request, pk):
-    #    if 'confirm_delete' in self.request.POST:
-     #       return self.delete(request)
-    #def form_valid(self, form, pk):
-    #    if 'confirm_post' in self.request.POST:
-    #        form.instance.user = self.request.user
-    #    return super(DispatchDetail, self).form_valid(form)
-
         
 def BOMDetail(request,code_id=None):
-    #model = BOM
     bomformset=modelformset_factory(BOM,fields=('__all__'),can_delete=True,extra=0,
                 widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),'ccode':autocomplete.ModelSelect2(url='material-autocomplete')})
     template_name = 'app1/update_form.html'
@@ -471,6 +457,27 @@ def BOMDetail(request,code_id=None):
         formset = bomformset(queryset=BOM.objects.filter(code_id=code_id))
     context = {'formset': formset,'helper':helper}
     return render(request,'app1/update_form.html',context)
+
+def FmodelDetail(request,pk=None):
+    qs = Fmodel.objects.filter(id=pk)
+    import datetime
+    from dateutil import relativedelta
+    ff= ['id','model','alg','code__so__so_del_date','code__so__so_qty','code__so__rate']
+    df = read_frame(qs,fieldnames=ff,coerce_float=True,index_col='id')
+    df = df.rename(columns={'code__so__so_del_date': 'so_del_date', 'code__so__rate': 'rate','code__so__so_qty': 'so_qty',})
+    df['so_del_date']=pd.to_datetime(df['so_del_date'])
+    df1=df.set_index('so_del_date').resample('M').agg({"so_qty":np.sum,"rate":np.mean}).copy()
+    df1['rate']=df1['rate'].ffill()
+    df1['month']=df1.index.month
+    df1=df1[df1.index.date<datetime.date.today()+relativedelta.relativedelta(months=+1)]
+    df1['month'] = df1['month'].astype('category')
+    context ={}
+    from .script import genforecast1,savemodel
+    if request.method == 'POST' and 'savemodel' in request.POST:
+        savemodel(df1,pk)
+    if request.method == 'POST' and 'genforecast1' in request.POST:
+        context=genforecast1(df1,pk) 
+    return render(request, "app1/forecast1.html",context)
 
 class SoDetail(UpdateView):
     model = So
@@ -521,6 +528,11 @@ class LineDetail(UpdateView):
     template_name = 'app1/form.html'
     fields='__all__'
 
+class CustomerDetail(UpdateView):
+    model = Customer
+    template_name = 'app1/form.html'
+    fields='__all__'
+
 class WCGroupDetail(UpdateView):
     model = WCGroup
     template_name = 'app1/form.html'
@@ -539,8 +551,6 @@ class SoList(SingleTableMixin,ExportMixin,FilterView):
     model = So
     paginate_by = 20
     table_class = SoTable
-    #table.paginate(per_page=25)
-    #table_data = So.objects.filter(closed=0)
     template_name = 'app1/list.html'
     filterset_class = SoFilter
 
@@ -548,24 +558,11 @@ class CustomerList(SingleTableMixin,ExportMixin,FilterView):
     model = Customer
     paginate_by = 20
     table_class = CustomerTable
-    #table.paginate(per_page=25)
-    #table_data = So.objects.filter(closed=0)
     template_name = 'app1/list.html'
-    #filterset_class = SoFilter
-    #SingleTableMixin.table_pagination = False
-
-class WPList(SingleTableMixin,FilterView):
-    model = So
-    #table = SoTable(So.objects.filter(closed=0).filter(plan__date__isnull=True))
-    #pp= Plan.objects.filter(date__isnull=True).values_list('so_id', flat=True)
-    #table_data = So.objects.filter(closed=0).filter(plan__date__isnull=True)
-    template_name = 'app1/list.html'
-    filterset_class = SoFilter
 
 class PlanList(SingleTableMixin,FilterView):
     model = Plan
     table_class = PlanTable
-    #table_data = So.objects.filter(closed=0)
     template_name = 'app1/list.html'
     filterset_class = PlanFilter
 
@@ -578,6 +575,12 @@ class LineList(SingleTableMixin,FilterView):
     table_class = LineTable
     template_name = 'app1/list.html'
     filterset_class = LineFilter
+    
+class FmodelList(SingleTableMixin,FilterView):
+    model = Fmodel
+    table_class = FmodelTable
+    template_name = 'app1/list.html'
+    filterset_class = FmodelFilter
 
 class MaterialList(SingleTableMixin,ExportMixin,FilterView):
     model = Material
@@ -702,9 +705,13 @@ def planpivot(request):
 def sodview(request):
     qs = So.objects.all()
     ff=[f.name for f in So._meta.get_fields()]
-    ff.extend(['fgcode__'+k.name for k in Material._meta.get_fields()])
-    ff.remove('fgcode__so')
+    #ff.extend(['code__'+k.name for k in Material._meta.get_fields()]) #Get field names of related models also
+    ff.extend(['code__'+k.name for k in Material._meta.fields])
+    tt=['production','dispatch','plan','commit_disp_date','act_disp_qty','currency','code__rate','code__uom','code__customer','code__cbm','code__lead_time','code__des_code','code__cust_code']
+    ff=[ele for ele in ff if ele not in tt]
     df = read_frame(qs,fieldnames=ff,coerce_float=True,index_col='id')
+    df['so_del_date'] = pd.to_datetime(df['so_del_date'])
+    df['so_date'] = pd.to_datetime(df['so_date'])
     d = dtale.show(df,name='so')
     try:
         response = redirect(d._main_url)
@@ -714,23 +721,8 @@ def sodview(request):
 
 from django.db.models.expressions import RawSQL
 def matreq(request):
-    #qs = Material.objects.all()
-    '''
-    rqs = Material.objects.raw("SELECT m.id,m.code,m.desc, f.code AS fgcode,f.desc AS fdesc, SUM(s.so_qty) AS so_qty,b.qty as bqty, SUM(b.qty*s.so_qty) AS req FROM ((( app1_material m  
-                                                                                              LEFT JOIN app1_bom b ON b.material_code_id=m.id)
-                                                                                              LEFT JOIN app1_so s ON b.fgcode_id=s.fgcode_id)
-                                                                                              LEFT JOIN app1_product f ON f.id=b.fgcode_id) WHERE s.closed=FALSE AND b.active=TRUE GROUP BY m.id,f.code,f.desc,bqty")
-    
-    sql=("SELECT DISTINCT m.code,m.desc FROM app1_bom b
-            LEFT JOIN app1_material m ON (b.material_code_id = m.id)
-            LEFT JOIN app1_product f ON (b.fgcode_id=f.id)
-            LEFT JOIN app1_so s ON (s.fgcode_id = f.id)
-            WHERE s.closed=FALSE AND b.active=TRUE GROUP BY m.code,m.desc")
-    '''
     qs = BOM.objects.order_by().values('ccode').distinct().filter(code__so__closed=False).values('code_id','ccode__code','ccode__desc','code__code','code__desc','code__so__so','qty',
     'uom').annotate(bal_so_qty=F('code__so__so_qty')-Coalesce(Sum(F('code__so__dispatch__dis_qty')),0),req=F('qty')*F('bal_so_qty'))
-    #print(qs)
-    #qs = Material.objects.filter(pk__in=[x.pk for x in rqs])
     f = BOMFilter(request.GET, queryset=qs)
     paginate_by = 25
     table = MatreqTable(f.qs)
@@ -890,7 +882,6 @@ def forecast_view(request, template_name, **kwargs):
         #stdev = sqrt(1/(len(y)-2) * sum_errs)
         #interval = 1.96 * stdev
         #lower, upper = yhat_out - interval, yhat_out + interval
-        
         fig = px.line(fdf,y="qty",x='so_del_date',height=500,color='type')
         fig.update_layout(transition_duration=500)
         return fig

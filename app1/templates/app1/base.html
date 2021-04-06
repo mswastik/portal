@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="{%static 'all.css' %}" >
 
 
-<script src="{%static 'jquery-3.5.1.min.js' %}"></script>
+<script src="{%static 'jquery-3.6.0.min.js' %}"></script>
 <script src="{%static 'jquery-ui.min.js' %}"></script>
 <script src="{%static 'jquery.formset.js' %}"></script>
 <script src="{%static 'bootstrap.bundle.min.js' %}"></script>
@@ -44,6 +44,7 @@
 	<a class="dropdown-item" href="{% url 'materialform' %}">Material</a>
 	<a class="dropdown-item" href="{% url 'wcgroupform' %}">WC Group</a>
 	<a class="dropdown-item" href="{% url 'routingform' %}">Routing</a>
+	<a class="dropdown-item" href="{% url 'fmodelform' %}">Fmodel</a>
     </div>
     </li>
 
@@ -61,8 +62,8 @@
 <a class="dropdown-item" href="{% url 'customerlist' %}">Customer List</a>
 <a class="dropdown-item" href="{% url 'wcgrouplist' %}">WC Group List</a>
 <a class="dropdown-item" href="{% url 'routinglist' %}">Routing List</a>
-<a class="dropdown-item" href="{% url 'wplist' %}">Without Plan List</a>
 <a class="dropdown-item" href="{% url 'forecastlist' %}">Forecast List</a>
+<a class="dropdown-item" href="{% url 'fmodellist' %}">Forecast Model List</a>
 </div>
 </li>
 

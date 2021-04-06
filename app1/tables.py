@@ -83,6 +83,11 @@ class LineFilter(django_filters.FilterSet):
         model = Line
         exclude = ()
 
+class FmodelFilter(django_filters.FilterSet):
+    code__code = django_filters.CharFilter(lookup_expr='icontains')
+    class Meta:
+        model = Fmodel
+        exclude = (['model','code'])
         
 class BOMFilter(django_filters.FilterSet):
     ccode__code = django_filters.CharFilter(lookup_expr='icontains')
@@ -165,10 +170,15 @@ class MaterialTable(tables.Table):
     class Meta:
         model = Material
         exclude = ()
-        #fields = ('code','desc','fgcode','fdesc','uom','so_qty','bqty','req')
         attrs = {'class': 'table table-sm'}
     code = tables.Column(linkify={"viewname":"materialdetail", "args":[A("pk")]})
 
+class FmodelTable(tables.Table):
+    class Meta:
+        model = Fmodel
+        exclude = (['model'])
+        attrs = {'class': 'table table-sm'}
+    code = tables.Column(linkify={"viewname":"fmodeldetail", "args":[A("pk")]})
 
 class MaterialTable1(tables.Table):
     class Meta:
@@ -183,27 +193,20 @@ class MaterialTable1(tables.Table):
 class BOMTable(tables.Table):
     class Meta:
         model = BOM
-        #fields = ('bomversion','material_code__material_id','qty')
         exclude = ('id','bom_version')
         attrs = {'class': 'table table-sm'}
     code = tables.Column(linkify={"viewname":"bomdetail", "args":[A("code_id")]})
     material_code = tables.Column(linkify=True)
-    #material_code__material_id = tables.Column()
 
 class ForecastTable(tables.Table):
     class Meta:
         model = Forecast
-        #fields = ('bomversion','material_code__material_id','qty')
         exclude = ('id',)
         attrs = {'class': 'table table-sm'}
-    #code = tables.Column(linkify={"viewname":"bomdetail", "args":[A("code_id")]})
-    #material_code = tables.Column(linkify=True)
-    #material_code__material_id = tables.Column()
 
 class LineTable(tables.Table):
     class Meta:
         model = Line
-        #fields = ('bomversion','material_code__material_id','qty')
         exclude = ('id',)
         attrs = {'class': 'table table-sm'}
     line = tables.Column(linkify={"viewname":"linedetail", "args":[A("pk")]})
@@ -213,20 +216,15 @@ class LineTable(tables.Table):
 class WCGroupTable(tables.Table):
     class Meta:
         model = WCGroup
-        #fields = ('bomversion','material_code__material_id','qty')
         exclude = ('id',)
         attrs = {'class': 'table table-sm'}
     wcgrp = tables.Column(linkify={"viewname":"wcgrpdetail", "args":[A("pk")]})
-    #wcgrp = tables.Column(linkify=True)
 
 class RoutingTable(tables.Table):
     class Meta:
         model = Routing
-        #fields = ('bomversion','material_code__material_id','qty')
-        #exclude = ('id',)
         attrs = {'class': 'table table-sm'}
     id = tables.Column(linkify={"viewname":"routingdetail", "args":[A("pk")]})
-    #wcgrp = tables.Column(linkify=True)
 
 class MatreqTable(tables.Table):
     class Meta:
@@ -243,7 +241,6 @@ class MatreqTable(tables.Table):
 class DispatchTable(tables.Table):
     class Meta:
         model = Dispatch
-        #fields = ('code','desc','case_size','bulk_code','micro','carton')
         exclude = ()
         attrs = {'class': 'table table-sm'}
         order_by = '-dispatch_date'
@@ -254,7 +251,6 @@ class DispatchTable(tables.Table):
 class ProductionTable(tables.Table):
     class Meta:
         model = Production
-        #fields = ('code','desc','case_size','bulk_code','micro','carton')
         exclude = ('id',)
         attrs = {'class': 'table table-sm'}
     so = tables.Column(linkify={"viewname":"productiondetail", "args":[A("pk")]})
@@ -266,7 +262,6 @@ class PlanTable(tables.Table):
         fields = ('so','so_del_date','code','plan_qty','date')
         attrs = {'class': 'table table-sm'}
     so = tables.Column(linkify={"viewname":"sodetail", "args":[A("pk")]})
-    #code = tables.Column()
     date = tables.Column()
     line = tables.Column(accessor='plan.line')
     def render_date(self, record):

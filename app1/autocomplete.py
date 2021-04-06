@@ -15,8 +15,6 @@ class ProductAutocomplete(autocomplete.Select2QuerySetView):
 class OpensoAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated:
-            return So.objects.none()
         qs = So.objects.all()
         if self.q:
             qs = qs.filter(Q(closed=False),Q(so__icontains=self.q) | Q(code__code__icontains=self.q))

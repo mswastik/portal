@@ -96,3 +96,10 @@ uom_choices = (
     ("KG", "KG"),
     ("G", "G"),
     )
+    
+alg_choices = (
+    ("Random Forrest", "Random Forrest"),
+    ("SVM", "SVM"),
+    ("Linear Regression", "Linear Regression"),
+    ("ARIMAX", "ARIMAX"),
+    )

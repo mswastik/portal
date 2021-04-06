@@ -5,22 +5,22 @@ from crispy_forms.layout import Submit,Layout,Div,Field,Fieldset,HTML,ButtonHold
 from crispy_forms.bootstrap import InlineField,FormActions
 from django.forms.models import inlineformset_factory,BaseInlineFormSet
 from .custom_layout_object import Formset
-from django_select2.forms import Select2Widget,ModelSelect2Widget
+#from django_select2.forms import Select2Widget,ModelSelect2Widget
 from datetime import datetime  
-from django.contrib.admin.widgets import FilteredSelectMultiple
+#from django.contrib.admin.widgets import FilteredSelectMultiple
 from dal import autocomplete
 
 class DateInput(forms.DateInput):
     input_type = 'date'
-
+'''
 class SoWidget(ModelSelect2Widget):
     model = So
     search_fields = [
         'so__icontains',
-        'fgcode__code__icontains',
-        'fgcode__desc__icontains',
+        'code__code__icontains',
+        'code__desc__icontains',
     ]
-
+'''
 class PlanForm(forms.ModelForm):
     class Meta:
         model = Plan
@@ -86,7 +86,19 @@ class DispatchForm1(forms.ModelForm):
         widgets = {
             'so': autocomplete.ModelSelect2(url='openso-autocomplete')
         }
+    helper = FormHelper()
     
+class FmodelForm(forms.ModelForm):
+    class Meta:
+        model = Fmodel
+        exclude=()
+        widgets = {
+            'code': autocomplete.ModelSelect2(url='product-autocomplete')
+        }
+    helper = FormHelper()
+    helper.template = 'bootstrap4/table_inline_formset.html'
+    helper.form_method = 'post'
+    helper.add_input(Submit('submit', 'Submit'))
 
 class DispatchForm(forms.ModelForm):
     class Meta:
@@ -130,7 +142,7 @@ class SoForm1(forms.ModelForm):
     #helper.form_class = 'form-sm'     
     helper.form_method = 'post'
     helper.add_input(Submit('submit', 'Submit'))
-    #helper.layout = Layout(Column('code',css_class='col-sm-3'))
+    helper.layout = Layout(Column('code',css_class='col-sm-3'))
 
 class BOMForm(forms.ModelForm):
     class Meta:
@@ -151,7 +163,6 @@ class RoutingForm(forms.ModelForm):
     helper.template = 'bootstrap4/table_inline_formset.html'
     helper.form_method = 'post'
     helper.add_input(Submit('submit', 'Submit'))
-    #FilteredSelectMultiple("verbose name", is_stacked=False)
 
 class CustomerForm(forms.ModelForm):
     class Meta:

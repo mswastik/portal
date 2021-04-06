@@ -153,3 +153,13 @@ class Forecast(models.Model):
     dem_month = models.DateField(default=datetime.now)
     def __str__(self):
         return '{} - {}'.format(self.code,self.fore_qty)
+        
+class Fmodel(models.Model):
+    code = models.ForeignKey(Material, on_delete=models.CASCADE)
+    model = models.BinaryField()
+    alg = models.CharField(max_length=21,choices=alg_choices)
+    smape = models.DecimalField(max_digits=6,decimal_places=2,null=True,blank=True)
+    mae = models.DecimalField(max_digits=6,decimal_places=2,null=True,blank=True)
+    mase = models.DecimalField(max_digits=6,decimal_places=2,null=True,blank=True)
+    def __str__(self):
+        return '{} - {}'.format(self.code,self.alg)

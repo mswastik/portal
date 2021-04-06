@@ -1,0 +1,39 @@
+{% extends "app1/base.html" %}
+{% load crispy_forms_tags %}
+{% load bootstrap4 %}
+{% block content %}
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<div class="row">
+
+<form method="post">
+    {% csrf_token %}
+    <button class="btn btn-primary mt-3 ml-3" type="submit" name="savemodel">Save Model</button>
+</form>
+
+<form method="post">
+    {% csrf_token %}
+    <button class="btn btn-primary mt-3 ml-3" type="submit" name="genforecast1">Generate Forecast</button>
+</form>
+{% if graph %}
+	<div class="alert alert-primary mt-3 ml-3" role="alert"> {{code}} sMAPE : {{smape}}% MAE: {{mae}} MASE: {{mase}}</strong></div>
+	{% endif %}
+</div>
+
+<div class="row">
+{{ graph1|safe }}
+{{ graph|safe }}
+
+</div>
+<div class="row">
+{% if filter %}
+<form method="get" class="form-group form-inline mb-2 mt-2">
+        {% for field in filter.form %}
+		{% bootstrap_field field layout="inline" size='sm'%}
+		{% endfor %}
+        <input class="btn-sm btn-primary" type="submit" name="Submit">
+    </form>
+{% endif %}
+</div>
+{% endblock %}
