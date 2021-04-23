@@ -3,17 +3,26 @@
 {% load bootstrap4 %}
 
 {% block content %}
-{{ formset.media.js }}
+{{ formset.media }}
 
-<form action="" class="form form-group-sm " method="post">
+<form id="myModal" action="" class="form form-group-sm" method="post">
     {% csrf_token %}
    {% crispy formset helper %}
 </form>
 <script>
+	$('td').addClass('border-0 p-0');
+	$('select').addClass('p-0');
+	$(".checkboxinput").addClass('ml-3 p-0');
     $.fn.select2.defaults.set( "theme", "bootstrap4");
-	$.fn.select2.defaults.set( "width", "400px");
+	$.fn.select2.defaults.set( "width", "100%");
 	$.fn.select2.defaults.set( "dropdownAutoWidth", "true");
-	 $.fn.select2.defaults.set( "placeholder", "type");
+	$.fn.select2.defaults.set( "autofocusInputOnOpen", "true");
+	$.fn.select2.defaults.set( "minimumResultsForSearch", "2");
+	$('.select2').select2({}).focus(function () { $(this).select2('open'); });
+	$('.select2').select2({
+    autofocusInputOnOpen: "true",
+	minimumResultsForSearch: 2,
+});
 </script>
 
 {% endblock %}

@@ -17,13 +17,12 @@
     <button class="btn btn-sm btn-primary mt-3 ml-3" type="submit" name="forecast_script">Generate Forecast</button>
 </form>
 
-<form method="POST">
-<select class="form-select mt-3 ml-3" name="item_id">
-{% for in,row in df.iterrows %}
-    <option value="{{ row.code__id }}">{{row.code__code }}</option>
-{% endfor %}
-</select>
+<form method="post">
+    {% csrf_token %}
+    <button class="btn btn-sm btn-primary mt-3 ml-3" type="submit" name="mps_script">Generate MPS</button>
 </form>
-
 </div>
+{% autoescape off %}
+{{df}}
+{% endautoescape %}
 {% endblock %}

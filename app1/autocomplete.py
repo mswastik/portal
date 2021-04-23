@@ -68,3 +68,4 @@ class MaterialAutocomplete(autocomplete.Select2QuerySetView):
         return '{} - {}'.format(item.code,item.desc)
     def get_result_label(self, item):
         return '{} - {}'.format(item.code,item.desc)
+        

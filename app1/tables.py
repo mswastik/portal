@@ -101,9 +101,10 @@ class BOMFilter(django_filters.FilterSet):
 class ForecastFilter(django_filters.FilterSet):
     code__code = django_filters.CharFilter(lookup_expr='icontains')
     code__desc = django_filters.CharFilter(lookup_expr='icontains')
+    month = django_filters.DateFilter(field_name='month', lookup_expr='gte',widget=DateInput())
     class Meta:
         model = Forecast
-        exclude = ('id',)
+        exclude = ('id','code')
 
 class MaterialFilter(django_filters.FilterSet):
     desc = django_filters.CharFilter(lookup_expr='icontains')
@@ -204,14 +205,35 @@ class ForecastTable(tables.Table):
         exclude = ('id',)
         attrs = {'class': 'table table-sm'}
 
+
+class DecimalColumn(tables.Column):   
+    def __init__(self, *args, **kwargs):
+        super(DecimalColumn, self).__init__(*args, **kwargs)
+    def render(self,value):
+       ff = forms.DecimalField()
+       return ff.widget.render(self.verbose_name,value)
+
+class HiddenInputColumn(tables.Column):
+    def __init__(self, *args, **kwargs):
+        kwargs['attrs'] = {'th': {'style': 'display:none;'},
+                           'td': {'style': 'display:none;'}}
+        super(HiddenInputColumn, self).__init__(*args, **kwargs)
+
+    def render(self, value):
+        return mark_safe('<input type="hidden" name="{}" value="{}" />'.format(self.verbose_name, value))
+       
 class LineTable(tables.Table):
     class Meta:
         model = Line
         exclude = ('id',)
         attrs = {'class': 'table table-sm'}
     line = tables.Column(linkify={"viewname":"linedetail", "args":[A("pk")]})
-    capacity = SummingColumn()
+    capacity = DecimalColumn(verbose_name='capacity',accessor='capacity')
+    #capacity = SummingColumn()
     prod_category = tables.Column(footer="Total of all pages:")
+    idx = HiddenInputColumn(verbose_name='id', accessor='pk')
+    
+
 
 class WCGroupTable(tables.Table):
     class Meta:

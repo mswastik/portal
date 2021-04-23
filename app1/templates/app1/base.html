@@ -45,6 +45,7 @@
 	<a class="dropdown-item" href="{% url 'wcgroupform' %}">WC Group</a>
 	<a class="dropdown-item" href="{% url 'routingform' %}">Routing</a>
 	<a class="dropdown-item" href="{% url 'fmodelform' %}">Fmodel</a>
+	<a class="dropdown-item" href="{% url 'soxcreate' %}">SO Create</a>
     </div>
     </li>
 
@@ -64,6 +65,7 @@
 <a class="dropdown-item" href="{% url 'routinglist' %}">Routing List</a>
 <a class="dropdown-item" href="{% url 'forecastlist' %}">Forecast List</a>
 <a class="dropdown-item" href="{% url 'fmodellist' %}">Forecast Model List</a>
+<a class="dropdown-item" href="{% url 'planninglist' %}">Planning List</a>
 </div>
 </li>
 
@@ -95,12 +97,14 @@
     <a class="dropdown-item" href="{% url 'prodpivot' %}">Production</a>
     <a class="dropdown-item" href="{% url 'planpivot' %}">Plan</a>
     <a class="dropdown-item" href="{% url 'matreqpivot' %}">Material</a>
+	<a class="dropdown-item" href="{% url 'fmodelpivot' %}">Forecast Model</a>
     </li>
 
 <li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Dtale</a>
     <div class="dropdown-menu pt-0 mt-0">
     <a class="dropdown-item" href="{% url 'sodview' %}" target="_blank">SO</a>
+	<a class="dropdown-item" href="{% url 'forecastdview' %}" target="_blank">Forecast</a>
 </li>
 <li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Analysis</a>
@@ -108,6 +112,7 @@
     <a class="dropdown-item" href="{% url 'demo-eight' %}" target="_blank">SO</a>
 	<a class="dropdown-item" href="{% url 'forecast' %}">Forecast</a>
 	<a class="dropdown-item" href="{% url 'dashforecast' %}">Forecast Graph</a>
+	<a class="dropdown-item" href="{% url 'plan' %}">Plan</a>
 </li>
 
 <li class="nav-items">

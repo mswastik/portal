@@ -4,8 +4,8 @@
 {% block content %}
 {{ filter.form.media }}
     {% if filter %}
-    <form action="" method="get" class="form-group ml-4 mr-3 mt-2 mb-2 form-inline">
-        {% bootstrap_form filter.form layout='inline' size='sm' class='mb-3 pl-5' %}
+    <form action="" method="get" class="form-group form-control-sm ml-4 mr-3 mt-2 mb-2 form-inline">
+        {% bootstrap_form filter.form layout='inline' size='sm' class='form-control-sm mb-3 pl-3' %}
         {% bootstrap_button 'Filter' button_type='submit' size='sm' %}
 		</form>
 	<a class="btn btn-sm btn-outline-primary" href="{% querystring '_export'='xlsx' %}">Download Excel</a>

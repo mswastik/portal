@@ -125,6 +125,7 @@ class Speed(models.Model):
 class WCGroup(models.Model):
     wcgrp = models.CharField(max_length=5)
     cap = models.DecimalField(max_digits=9,decimal_places=4,null=True,blank=True)
+    set_time = models.DecimalField(max_digits=4,decimal_places=1,null=True,blank=True)
     #line = models.ForeignKey(Line,on_delete=models.SET_NULL,null=True,to_field='line')
     def __str__(self):              # __unicode__ on Python 2
         return str(self.wcgrp)
@@ -144,16 +145,27 @@ class Plan(models.Model):
         return '{} - {} - {}'.format(self.so,self.date,self.line)
     def get_absolute_url(self):
         return "/plan/%i/" % self.id
+
+from django.db.models import F
         
 class Forecast(models.Model):
     code = models.ForeignKey(Material, on_delete=models.CASCADE)
     month = models.DateField(default=datetime.now)
     version = models.IntegerField()
-    fore_qty = models.DecimalField(max_digits=7,decimal_places=2)
+    fore_qty = models.DecimalField(max_digits=11,decimal_places=2)
+    overr_qty = models.DecimalField(max_digits=7,decimal_places=2,default=0)
     dem_month = models.DateField(default=datetime.now)
     def __str__(self):
         return '{} - {}'.format(self.code,self.fore_qty)
-        
+    @property
+    def tot_for_qty(self):
+      return self.fore_qty + self.overr_qty
+    '''
+    def get_queryset(self):
+        """Overrides the models.Manager method"""
+        qs = super(Forecast, self).get_queryset().annotate(tot_for_qty=F(fore_qty)+F(overr_qty))
+        return qs
+    '''    
 class Fmodel(models.Model):
     code = models.ForeignKey(Material, on_delete=models.CASCADE)
     model = models.BinaryField()
@@ -163,3 +175,10 @@ class Fmodel(models.Model):
     mase = models.DecimalField(max_digits=6,decimal_places=2,null=True,blank=True)
     def __str__(self):
         return '{} - {}'.format(self.code,self.alg)
+        
+class Planning(models.Model):
+    code = models.ForeignKey(Material, on_delete=models.CASCADE)
+    month = models.DateField(default=datetime.now)
+    mps_qty = models.DecimalField(max_digits=6,decimal_places=2,null=True,blank=True)
+    def __str__(self):
+        return '{} - {}'.format(self.code,self.month)

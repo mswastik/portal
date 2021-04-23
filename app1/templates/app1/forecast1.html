@@ -16,6 +16,12 @@
     {% csrf_token %}
     <button class="btn btn-primary mt-3 ml-3" type="submit" name="genforecast1">Generate Forecast</button>
 </form>
+
+<form method="post">
+    {% csrf_token %}
+    <button class="btn btn-primary mt-3 ml-3" type="submit" name="expforecast1">Explore Forecast</button>
+</form>
+
 {% if graph %}
 	<div class="alert alert-primary mt-3 ml-3" role="alert"> {{code}} sMAPE : {{smape}}% MAE: {{mae}} MASE: {{mase}}</strong></div>
 	{% endif %}
@@ -24,7 +30,17 @@
 <div class="row">
 {{ graph1|safe }}
 {{ graph|safe }}
-
+{{ vis | safe}}
+</div>
+{% autoescape off %}
+{{kk}}
+{{ev}}
+{{ev1}}
+{% endautoescape %}
+<div class="row table table-sm ml-5">
+{% autoescape off %}
+{{df}}
+{% endautoescape %}
 </div>
 <div class="row">
 {% if filter %}

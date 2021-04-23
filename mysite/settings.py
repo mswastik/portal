@@ -26,7 +26,8 @@ SECRET_KEY = '=!i%_#y66)=&ra6aw$&dlydkvxvy9r09#wxku15!jazwpi*hjx'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','192.168.1.7','172.26.80.119']
+# allowed host '192.168.1.7','172.26.80.119'
+ALLOWED_HOSTS = ['localhost']
 
 _locale._getdefaultlocale = (lambda *args: ['en_US', 'utf8'])
 # Application definition
@@ -36,18 +37,21 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django_select2',
     'dal',
     'dal_select2',
+    'django_pivot',
     'django.contrib.staticfiles',
     'app1.apps.App1Config',
     'import_export',
     'widget_tweaks',
     'django_tables2',
-    'django_filters',
     'bootstrap4',
+    'django_filters',
     'crispy_forms',
     'crequest',
     'reversion',
+    'funky_sheets',
     'tabular_permissions',
     'django.contrib.admin',
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',

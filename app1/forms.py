@@ -9,6 +9,14 @@ from .custom_layout_object import Formset
 from datetime import datetime  
 #from django.contrib.admin.widgets import FilteredSelectMultiple
 from dal import autocomplete
+from wtforms import Form, BooleanField, StringField, validators,DateTimeField
+
+
+class RegistrationForm(Form):
+    username     = StringField('Username', [validators.Length(min=4, max=25)])
+    email        = StringField('Email Address', [validators.Length(min=6, max=35)])
+    accept_rules = BooleanField('I accept the site rules', [validators.InputRequired()])
+    birthday  = DateTimeField('Your Birthday', format='%m/%d/%y')
 
 class DateInput(forms.DateInput):
     input_type = 'date'
@@ -72,7 +80,7 @@ class ProductionForm1(forms.ModelForm):
         model = Production
         exclude=()
         widgets = {
-            'so': SoWidget
+            'so': autocomplete.ModelSelect2(url='openso-autocomplete')
         }
     #helper = FormHelper()
     #helper.template = 'bootstrap4/table_inline_formset.html'    
@@ -138,20 +146,25 @@ class SoForm1(forms.ModelForm):
         model = So
         exclude=()
     helper = FormHelper()
-    helper.template = 'bootstrap4/table_inline_formset.html' 
-    #helper.form_class = 'form-sm'     
+    helper.template = 'bootstrap4/table_inline_formset.html'    
+    helper.form_class='form-control-sm'
     helper.form_method = 'post'
     helper.add_input(Submit('submit', 'Submit'))
-    helper.layout = Layout(Column('code',css_class='col-sm-3'))
+    #helper.layout = Layout(Column('code',css_class='border-0'))
+
+class MaterialUnique(forms.ModelForm):
+    class Meta:
+        model = Material
+        fields={'code',}
 
 class BOMForm(forms.ModelForm):
     class Meta:
         model = BOM
         exclude=()
     helper = FormHelper()
-    #helper.template = 'bootstrap4/table_inline_formset.html'
+    helper.template = 'bootstrap4/table_inline_formset.html'
     helper.form_method = 'post'
-    helper.layout = Layout(Row(Column('code',css_class='col-sm-3'),Column('ccode',css_class='col-sm-4'),Column('bom_version'),Column('qty'),Column('uom'),Column('bom_type'),Column('active'),css_class='form-row'))
+    #helper.layout = Layout(Row(Column('code',css_class='col-sm-3'),Column('ccode',css_class='col-sm-4'),Column('bom_version'),Column('qty'),Column('uom'),Column('bom_type'),Column('active'),css_class='form-row'))
     helper.add_input(Submit('submit', 'Submit'))
     #FilteredSelectMultiple("verbose name", is_stacked=False)
 
@@ -176,7 +189,7 @@ class CustomerForm(forms.ModelForm):
 class MaterialForm(forms.ModelForm):
     class Meta:
         model = Material
-        exclude=()
+        exclude=('cbm','pts','cust_code','des_code','lead_time')
     helper = FormHelper()
     helper.template = 'bootstrap4/table_inline_formset.html'    
     helper.form_method = 'post'
