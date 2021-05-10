@@ -51,19 +51,11 @@ def simple_fe(data):
     data['rolling_price_max_t6'] = data['rate'].transform(lambda x: x.shift(1).rolling(6).max())
     data['rolling_price_mean_t6'] = data['rate'].transform(lambda x: x.shift(1).rolling(6).mean())
     data['rolling_price_std_t6'] = data['rate'].transform(lambda x: x.rolling(6).std())
-    data=data.replace([np.inf, -np.inf, np.nan], 0)
-    '''
-    dd=data[data['so_qty']>0]['so_qty']
-    Q1 = dd.quantile(0.25)
-    Q3 = dd.quantile(0.75)
-    IQR = Q3 - Q1
-    maxn= Q3 + 1.5 * IQR
-    data['so_qty'].values[data['so_qty'] > maxn] = maxn'''
-    #ts=4
-    #trainx=data.drop(['so_qty'],axis=1)[:-ts]
-    #testx=data.drop(['so_qty'],axis=1)[-ts:]
-    #trainy=data['so_qty'][:-ts]
-    #testy=data['so_qty'][-ts:]
+    data=data.replace(np.inf,40000 )
+    data=data.replace(-np.inf,40000 )
+    data=data.bfill()
+    data['rolling_mean_t12'] = data['rolling_mean_t12'].fillna(data['rolling_mean_t6'])
+    data['rolling_max_t12'] = data['rolling_mean_t12'].fillna(data['rolling_max_t6'])
     return data
 
 def smape(A, F):
@@ -80,84 +72,59 @@ def genmodel(df5):
     reg={}
     for i in df5['code__id'].unique():
         k='forecast/'+str(int(i))
-        #if path.exists(k):
-        #    pass
-        #else:
-        sl=df5[df5['code__id']==i]
-        sl.drop('code__id',inplace=True,axis=1)
-        data=simple_fe(sl)
-        if len(data)>6:
-            #trainx=trainx[['rate','month']]
-            #try:
-            numeric = ['lag_t1','lag_t2','lag_t3','lag_t4','lag_t5','lag_t6','lag_t12','rolling_mean_t6','rolling_mean_t12','rolling_max_t6',
-            'rolling_max_t12','rolling_price_max_t6','rolling_price_mean_t6','rolling_price_std_t6','days']
-            reg1 = setup(sl, target = 'so_qty',silent=True,train_size= 0.80,categorical_features = ['month'],numeric_features=numeric)
-            print(sl.info())
-            best_model = compare_models(fold=5)
-            try:
-                tuned_model = tune_model(best_model, n_iter=5, optimize = 'MAE')
-                save_model(tuned_model, k)
-            except:
-                save_model(best_model, k)
-            #save_model(tuned_model, model_name=k)
-            #arima=auto_arima(y=trainy,seasonal=True,m=12,trace=True,stepwise=True)
-            #except:
-            #    pass
+        print(i)
+        if path.exists(k+'.pkl'):
+            pass
+        else:
+            sl=df5[df5['code__id']==i]
+            sl.drop('code__id',inplace=True,axis=1)
+            data=simple_fe(sl)
+            if len(data)>6:
+                numeric = ['lag_t1','lag_t2','lag_t3','lag_t4','lag_t5','lag_t6','lag_t12','rolling_mean_t6','rolling_mean_t12','rolling_max_t6',
+                'rolling_max_t12','rolling_price_max_t6','rolling_price_mean_t6','rolling_price_std_t6','days']
+                print(data)
+                reg1 = setup(data, target = 'so_qty',silent=True,train_size= 0.80,categorical_features = ['month'],numeric_features=numeric,transform_target = True,transform_target_method='yeo-johnson')
+                best_model = compare_models(fold=5)
+                try:
+                    tuned_model = tune_model(best_model, n_iter=5, optimize = 'MAE')
+                    save_model(tuned_model, k)
+                except:
+                    save_model(best_model, k)
     
 from pandas.tseries.offsets import MonthBegin
-#from sqlalchemy.sql import text
 from django.db.models import Case, Value, When
 def genforecast(df5):
-    #from sqlalchemy import create_engine
-    #database_url = 'postgresql://admin:admin@localhost:5432/app1db'
-    #engine = create_engine(database_url, echo=False)
-    #print(df5.info())
     for i in df5['code__id'].unique():
         k='forecast/'+str(int(i))
         tdf=df5[df5['code__id']==i]
+        print(i)
         if len(tdf)>1 and path.exists(k+'.pkl'):
             tdf['so_del']=tdf.index
             reg = load_model(k)
-            #print(tdf)
             for c in range(12):
                 tdf=tdf.tail(12)
-                #print(tdf.tail(1)['so_del'].values[0])
-                tmp={'code__id':tdf.tail(1)['code__id'].values[0],'rate':tdf.tail(1)['rate'].values[0],'so_del':pd.to_datetime(datetime.date.today()+ MonthBegin(n=c+1))}
+                tmp={'code__id':tdf.tail(1)['code__id'].values[0],'rate':tdf.tail(1)['rate'].values[0],'so_del':datetime.date.today()+ MonthBegin(n=c+1)}
                 tdf=tdf.append(tmp,ignore_index=True)
                 tdf.set_index('so_del',inplace=True)
-                #print(tdf['so_qty'])
                 data=simple_fe(tdf)
                 data=data.drop(['so_qty'],axis=1)
-                tt=predict_model(reg,data=data.tail(1))
-                print(i,c,tt['Label'])
-                ''' Working update
-                if Forecast.objects.filter(code_id=i, month=pd.to_datetime(datetime.date.today()- MonthBegin(n=1)),version=c+1, dem_month=pd.to_datetime(datetime.date.today()+ MonthBegin(n=c+1))).exists():
-                    Forecast.objects.update(fore_qty=Case(When(code_id=i, month=pd.to_datetime(datetime.date.today()- MonthBegin(n=1)),version=c+1, dem_month=pd.to_datetime(datetime.date.today()+ MonthBegin(n=c+1)), then=tt['Label'].values[0].item()),default=0))
-                else:
-                    Forecast.objects.create(code_id=i, month=pd.to_datetime(datetime.date.today()- MonthBegin(n=1)),version=c+1, dem_month=pd.to_datetime(datetime.date.today()+ MonthBegin(n=c+1)), fore_qty=tt['Label'].values[0].item())
-            '''
-            '''
-            tdf['so_del']= pd.to_datetime(tdf['so_del'])
-            tdf.set_index('so_del',inplace=True)
-            #tdf['month']=tdf.index.month
-            tdf['month'] = tdf['month'].astype('category')
-            #print(k,path.exists(k))
-            if path.exists(k+'.pkl'):
-                reg = load_model(k)
-                #print(tdf.info())
-                tdf=tdf.drop(['code__id'],axis=1)
-                data=simple_fe(tdf)
-                data=data[data.index.date>datetime.date.today()]
-                #print(data.info())
-                data=data.drop(['so_qty'],axis=1)
-                tt=predict_model(reg,data=data)
-                print(tt)
-                for c in range(12):
-                    #query = text("""UPDATE app1_forecast SET fore_qty=:f WHERE code_id=:co AND month=:d AND dem_month=:g; 
-                    #INSERT INTO app1_forecast(code_id,fore_qty,month,dem_month,version) SELECT :co,:f, :d,:g,:v WHERE NOT EXISTS (SELECT 1 FROM app1_forecast WHERE code_id=:co AND month=:d AND dem_month=:g)""")
-                    #engine.execute(query, co=i,f=tt[c], d=pd.to_datetime(datetime.date.today()- MonthBegin(n=1)), g=pd.to_datetime(datetime.date.today()+ MonthBegin(n=c)),v=c+1)
-                    Forecast.objects.update(fore_qty=Case(When(code_id=i, month=pd.to_datetime(datetime.date.today()- MonthBegin(n=1)), dem_month=pd.to_datetime(datetime.date.today()+ MonthBegin(n=c+1)), then=Value(tt.iloc[c,:]['Label']))))
-'''
+                try:
+                    tt=predict_model(reg,data=data.tail(1))
+                    tt['Label'][tt['Label']>99999]=0
+                    tt['Label'][tt['Label']<-99999]=0
+                    Forecast.objects.update_or_create(code_id=i, month=pd.to_datetime(datetime.date.today()- MonthBegin(n=1)),version=c+1, dem_month=pd.to_datetime(datetime.date.today()+ MonthBegin(n=c+1)),defaults={'fore_qty': tt['Label'].values[0].item()})
+                except:
+                    print('error- {}'.format(i))
+                i=int(i)
+                print(tt['Label'].values[0])
+                #Working update
+                #if Forecast.objects.filter(code_id=i, month=datetime.date.today()- MonthBegin(n=1), dem_month=datetime.date.today()+ MonthBegin(n=c+1)).exists() and tt['Label'].values[0] is not None:
+                #    Forecast.objects.filter(code_id=i, month=datetime.date.today()- MonthBegin(n=1), dem_month=datetime.date.today()+ MonthBegin(n=c+1)).update(fore_qty=tt['Label'].values[0].item())
+                #elif tt['Label'].values[0] is not None:
+                #    Forecast.objects.create(code_id=i, month=pd.to_datetime(datetime.date.today()- MonthBegin(n=1)),version=c+1, dem_month=pd.to_datetime(datetime.date.today()+ MonthBegin(n=c+1)), fore_qty=tt['Label'].values[0].item())
+                # Working but slower
+                
+
 def savemodel(df5,pk):
     sl=simple_fe(df5)
     '''

@@ -49,22 +49,6 @@ def index(request):
 
 soinlineformset =  inlineformset_factory(So, Plan,form=PlanForm,widgets={'date': DateInput()},extra=5,can_delete=True)
 
-'''    
-class MaterialWidget(ModelSelect2Widget):
-    queryset = Material.objects.all()
-    search_fields = [
-        'code__icontains',
-        'desc__icontains',
-    ]
-
-class OpenSoWidget(ModelSelect2Widget):
-    queryset = So.objects.filter(closed=0)
-    search_fields = [
-        'so__icontains',
-        'fgcode__code__icontains',
-        'fgcode__desc__icontains',
-    ]
-'''
 @permission_required("app1.add_so",login_url='/accounts/login/')   
 def SoCreate(request):
     SoFormSet = modelformset_factory(So, fields=('so','code','so_date','so_del_date','closed','customer','so_qty','rate'), extra=12,
@@ -235,75 +219,11 @@ def FmodelCreate(request):
     context = {'formset': formset,'helper':helper}
     return render(request,'app1/create_form.html',context)
 
-
-class CreateSoView(HotView):
-    # Define model to be used by the view
-    model = So
-    # Define template
-    template_name = 'app1/excel.html'
-    # Define custom characters/strings for checked/unchecked checkboxes
-    checkbox_checked = 'yes' # default: true
-    checkbox_unchecked = 'no' # default: false
-    # Define prefix for the formset which is constructed from Handsontable spreadsheet on submission
-    prefix = 'table'
-    # Define success URL
-    success_url = reverse_lazy('soxupdate')
-    # Define fields to be included as columns into the Handsontable spreadsheet
-    fields = (
-        'so',
-        'so_date',
-        'so_del_date',
-        'code',
-        'so_qty',
-        'closed',
-    )
-    # Define extra formset factory kwargs
-    factory_kwargs = {
-        'widgets': {
-            'so_date': DateInput(attrs={'type': 'date'}),
-            'so_del_date': DateInput(attrs={'type': 'date'}),
-            'closed': CheckboxInput(),
-        }
-    }
-    # Define Handsontable settings as defined in Handsontable docs
-    hot_settings = {
-        'contextMenu': 'true',
-        'autoWrapRow': 'true',
-        'rowHeaders': 'true',
-        'contextMenu': 'true',
-        'search': 'true',
-        'licenseKey': 'non-commercial-and-evaluation',
-        # When value is dictionary don't wrap it in quotes
-        'headerTooltips': {
-            'rows': 'false',
-            'columns': 'true'
-        },
-        # When value is list don't wrap it in quotes
-        'dropdownMenu': [
-            'remove_col',
-            '---------',
-            'make_read_only',
-            '---------',
-            'alignment'
-        ]
-    }
-
-class UpdateSoView(CreateSoView):
-  template_name = 'app1/excel.html'
-  # Define 'update' action
-  action = 'update'
-  # Define 'update' button
-  button_text = 'Update'
-  def get_queryset(self):
-        #code = self.kwargs['code_id']
-        return self.model.objects.filter(code_id=10605)
-
-
 @permission_required("app1.change_so",login_url='/accounts/login/')  
 def SoUpdate(request):
     fields=('so','code','so_date','so_del_date','so_qty','closed','remarks')
     SoUpFormset = modelformset_factory(So,fields=fields,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),
-                                        'so_date':DateInput,'so_del_date':DateInput},can_delete=True)
+                                        'so_date':DateInput,'so_del_date':DateInput},can_delete=True,extra=0)
     helper = SoForm1.helper
     f = SoFilter(request.GET, queryset=So.objects.all())
     paginator = Paginator(f.qs, 25,)
@@ -437,6 +357,29 @@ def BOMUpdate(request):
             formset = BOMUpFormset(queryset=page_query)
     else:
         formset = BOMUpFormset(queryset=page_query)
+    context = {'formset': formset,'helper':helper,'filter': f,'page_obj': page_obj}
+    return render(request,'app1/update_form.html',context)
+
+@permission_required("app1.change_forecast",login_url='/accounts/login/')  
+def ForecastUpdate(request):
+    ForecastUpFormset = modelformset_factory(Forecast,exclude=(),widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete')})
+    helper = ForecastForm.helper
+    f = ForecastFilter(request.GET, queryset=Forecast.objects.all())
+    paginator = Paginator(f.qs, 25,)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    query = f.qs
+    page_query = query.filter(id__in=[object.id for object in page_obj])
+    if request.method == 'POST':
+        formset = ForecastUpFormset(request.POST)
+        if formset.has_changed() and formset.is_valid():
+            formset.save()
+        else:
+            print(formset.errors)
+            messages.error(request, "Please correct the errors below and resubmit.")
+            formset = ForecastUpFormset(queryset=page_query)
+    else:
+        formset = ForecastUpFormset(queryset=page_query)
     context = {'formset': formset,'helper':helper,'filter': f,'page_obj': page_obj}
     return render(request,'app1/update_form.html',context)
 
@@ -741,11 +684,6 @@ def fmodelpivot(request):
     ff=[f.name for f in Fmodel._meta.get_fields()]
     ff.extend(['code__code','code__desc'])
     df = read_frame(ss,fieldnames=ff,coerce_float=True,index_col='id')
-    #df = pd.DataFrame(ss)
-    #print(df.info())
-    #pr = Material.objects.values()
-    #df3 = pd.DataFrame(pr)
-    #df = pd.merge(df,df3,how='left',left_on=['code_id'],right_on=['id'])
     df = df.to_html(table_id="input",index=False)
     context = {'df': df}
     return render(request, "app1/pivot.html", context)
@@ -954,56 +892,38 @@ def session_state_view(request, template_name, **kwargs):
         
     return render(request, template_name=template_name,)
  
+import json
+from django.http import JsonResponse
 import datetime
 from dateutil import relativedelta 
-def forecast_view(request, template_name, **kwargs):
-    #external_stylesheets = ['D:\\SwastikMishra\\Downloads\\data\\mysite1\\app1\\static\\bWLwgP.css']
-    app = DjangoDash('DjangoSessionState',add_bootstrap_links=True)
-    #app.css.config.serve_locally = True
-    #app.scripts.config.serve_locally = True
+from django.http import HttpResponse
+from django.http import FileResponse
+from bson import json_util
+from bson.json_util import dumps
+def forecast_data(request):
     qs = So.objects.all()
     fo = Forecast.objects.all()
-    ff= ['so_del_date','so_qty','code__code','code__desc']
+    ff= ['so_del_date','so_qty','code__code','code__desc','code__bus_category','code__prod_category']
     df = read_frame(qs,fieldnames=ff,coerce_float=True,index_col='id')
     df['so_del_date']=pd.to_datetime(df['so_del_date'])
+    code=df['code__code'].unique()
+    #df.set_index('so_del_date',inplace=True)
+    #df=df.resample('M').sum()
+    df=df.groupby(['code__code','code__bus_category','code__prod_category',pd.Grouper(freq='M',key='so_del_date')]).agg({"so_qty":np.sum})
+    df=df.reset_index()
     foc= ['dem_month','fore_qty','code__code','code__desc','month']
     df1 = read_frame(fo,fieldnames=foc,coerce_float=True,index_col='id')
     df1['dem_month']=pd.to_datetime(df1['dem_month'])
     df1['month']=pd.to_datetime(df1['month'])
-    app.layout = html.Div([dbc.Row([
-            dbc.Col(dcc.Dropdown(id='code',options=[{'label':i,'value':i} for i in df['code__code'].unique()], value='FB24910000CA')),
-            dbc.Col(dcc.Dropdown(id='month',options=[{'label':i,'value':i} for i in df1['month'].dt.date.unique()], value='')),
-            dcc.DatePickerRange(id='daterange',start_date=df['so_del_date'].min(),end_date=datetime.date.today()+relativedelta.relativedelta(months=+5),calendar_orientation='vertical',persisted_props=[df['so_del_date'].min(),df['so_del_date'].max()])  
-            ],className='mr-3 mt-3'),
-        dcc.Graph(id='graph-with-slider'),
-    ])
-    @app.callback(
-         dash.dependencies.Output('graph-with-slider', 'figure'),
-        [dash.dependencies.Input('code', 'value'),
-         dash.dependencies.Input('month', 'value'),
-         dash.dependencies.Input('daterange', 'start_date'),
-         dash.dependencies.Input('daterange', 'end_date')]
-        )
-    def callback_color(code,month,startdate,enddate):
-        df2=df.set_index('so_del_date')
-        df2=df2.groupby(['code__code','code__desc']).resample('M').sum()
-        df2.rename(columns={'so_qty':'qty'},inplace=True)
-        df2['type']="Actual"
-        df3=df1[df1['month']==month]
-        df3=df3.set_index('dem_month')
-        df3=df3.groupby(['code__code','code__desc']).resample('M').sum()
-        df3.rename(columns={'fore_qty':'qty'},inplace=True)
-        df3['type']="Forecast"
-        df2=df2.append(df3)
-        df2.reset_index(inplace=True)
-        fdf=df2[df2['so_del_date']>startdate]
-        fdf=fdf[fdf['so_del_date']<enddate]
-        fdf=fdf[fdf['code__code']==code]
-        fig = px.line(fdf,y="qty",x='so_del_date',height=500,color='type')
-        fig.update_layout(transition_duration=500)
-        return fig
-        
-    return render(request, template_name=template_name,)    
+    data= df.to_json(orient="records")
+    json_projects = []
+    json_projects = data
+    return render(request,'app1/dc.html',{'data':json_projects,'code':code})
+
+def forecast_view(request):
+    return render(request, 'app1/dc.html')
+
+    
     
 def forecast(request):
     import datetime
@@ -1025,47 +945,50 @@ def forecast(request):
     if request.method == 'POST' and 'mps_script' in request.POST:
         df=genmps(df1)
     return render(request, "app1/forecast.html",{"df": df})
-    
-#from django_pivot.pivot import pivot
-from django.forms import inlineformset_factory
+
+from pandas.tseries.offsets import MonthBegin    
+
+def html_input(c):
+    return '<input class="form-control form-control-sm textinput textInput" name="{}" value="{{}}" />'.format(c)
+
 def mps(request):
-    #mpsFormset=modelformset_factory(Planning, fields=('code','month','mps_qty'),
-	#				widgets={'code': autocomplete.ModelSelect2(url='product-autocomplete')},extra=0)
-    forecastFormset=inlineformset_factory(Material,Forecast, fields=('code','dem_month','fore_qty','overr_qty'),
-					widgets={'code': autocomplete.ModelSelect2(url='product-autocomplete')},extra=0)
-    #query= Forecast.objects.values('code__code').distinct()
-    mat=Material()
-    formset1 = forecastFormset(queryset=Forecast.objects.none(),instance=mat)
+    form=MaterialUnique()
+    forecastFormset=modelformset_factory(Forecast, fields=('id','code','dem_month','fore_qty','overr_qty'),extra=0)
+    formset1 = forecastFormset(queryset=Forecast.objects.none())
     context={}
-    form=MaterialUnique(instance=mat)
+    uni=''
+    df=""
     if request.method == 'POST' and 'code' in request.POST:
-        form=MaterialUnique(instance=mat)
-        #form = request.POST.getlist('code')[0]
-        #formset = mpsFormset(queryset=Planning.objects.filter(code_id__code=form))
-        #formset1 = forecastFormset(queryset=Forecast.objects.filter(code_id__code=form),request.POST)
-        formset1 = forecastFormset(request.POST,instance=mat)
-        context={'formset1':formset1,'form':form}
-        if request.method == 'POST' and 'forecast' in request.POST:
-            formset1 = forecastFormset(request.POST)
-            #print(formset1)
-            if formset1.is_valid():
-                #print('valid form')
-                formset1.save()
-                formset1 = forecastFormset(queryset=Forecast.objects.filter(code_id__code=form))
-            else:
-                print(formset1.errors)
-                formset1 = forecastFormset(queryset=Forecast.objects.filter(code_id__code=form))
-        
-        '''
-        for form in formset1:
-            if form.is_valid():
-                form.save()
-        
-    if request.method == 'POST' and 'mps' in request.POST:
-        formset = mpsFormset(request.POST)
-        if formset.is_valid():
-            formset.save()
-        else:
-            print(formset.errors)'''
-    context={'formset1':formset1,'form':form}
+        form=MaterialUnique(request.POST)
+        uni = request.POST.getlist('code')[0]
+        query=Forecast.objects.filter(code_id__code=uni,month=pd.to_datetime(datetime.date.today()- MonthBegin(n=1))).order_by('dem_month','version')
+        ff=['id','code__id','code__code','fore_qty','overr_qty','dem_month']
+        df = read_frame(query,fieldnames=ff,coerce_float=True)
+        df['dem_month']=pd.to_datetime(df['dem_month']).dt.date
+        qq=So.objects.filter(so_del_date__gt=datetime.date.today()- MonthBegin(n=1),code_id__code=uni).all()
+        df1 = read_frame(qq,fieldnames=['code__id','so_qty','so_del_date'],coerce_float=True)
+        df1['so_del_date']=pd.to_datetime(df1['so_del_date'])
+        df1=df1.groupby(['code__id',pd.Grouper(freq='M',key='so_del_date')]).agg({"so_qty":np.sum}).copy()
+        df1=df1.reset_index()
+        print(df1)
+        df1['dem_month']=df1['so_del_date']- MonthBegin(n=1)
+        df['SO']=0
+        df['PAB']=0
+        df['MPS']=0
+        ii=[]
+        for i, row in df.iterrows():
+            for ii, row1 in df1.iterrows(): 
+                if row1['dem_month']==row['dem_month']:
+                    df['SO'][i]= df1['so_qty'][ii]
+        df['Demand']=df[['SO','fore_qty']].max(axis=1)+df['overr_qty'].cumsum()
+        for i in range(len(df)):
+            df.loc[i,'MPS']=df.loc[i,'Demand']-df.loc[max(i-1,0),'PAB']
+            print(df.iloc[i,:].shift(-1)['PAB'])
+            df.loc[i,'PAB']=df.loc[max(i-1,0),'PAB']+df.loc[i,'MPS']-df.loc[i,'Demand']
+        df=df.style.format({c: html_input(c) for c in df.columns}).render()
+    if request.method == 'POST' and 'df' in request.POST:
+        kk=dict(request.POST)# no .dict-keys 1 item, .items-0 values, .values-0 values 
+        for i in range(len(kk)):
+            Forecast.objects.filter(id=request.POST.getlist('id')[i]).update(fore_qty=request.POST.getlist('fore_qty')[i],overr_qty=request.POST.getlist('overr_qty')[i])
+    context={'form':form,'df':df}
     return render(request, "app1/plan.html",context)

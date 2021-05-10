@@ -35,6 +35,7 @@ class Material(models.Model):
     pts = models.DecimalField(max_digits=9,decimal_places=4,blank=True,null=True)
     cbm = models.DecimalField(max_digits=9,decimal_places=4,blank=True,null=True)
     remarks = models.CharField(max_length=15,blank=True,null=True)
+    lot_size = models.IntegerField(default=0,null=True,blank=True)
     def __str__(self):              # __unicode__ on Python 2
         return '{} - {}'.format(self.code,self.desc)
     def get_absolute_url(self):
@@ -156,7 +157,7 @@ class Forecast(models.Model):
     overr_qty = models.DecimalField(max_digits=7,decimal_places=2,default=0)
     dem_month = models.DateField(default=datetime.now)
     def __str__(self):
-        return '{} - {}'.format(self.code,self.fore_qty)
+        return '{} - {} - {}'.format(self.code,self.fore_qty,self.dem_month)
     @property
     def tot_for_qty(self):
       return self.fore_qty + self.overr_qty
@@ -180,5 +181,7 @@ class Planning(models.Model):
     code = models.ForeignKey(Material, on_delete=models.CASCADE)
     month = models.DateField(default=datetime.now)
     mps_qty = models.DecimalField(max_digits=6,decimal_places=2,null=True,blank=True)
+    pab_qty = models.DecimalField(max_digits=6,decimal_places=2,null=True,blank=True)
+    atp_qty = models.DecimalField(max_digits=6,decimal_places=2,null=True,blank=True)
     def __str__(self):
         return '{} - {}'.format(self.code,self.month)

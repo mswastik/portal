@@ -37,10 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django_select2',
     'dal',
     'dal_select2',
-    'django_pivot',
     'django.contrib.staticfiles',
     'app1.apps.App1Config',
     'import_export',
@@ -51,7 +49,6 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crequest',
     'reversion',
-    'funky_sheets',
     'tabular_permissions',
     'django.contrib.admin',
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
@@ -166,39 +163,5 @@ CACHES = {
 }
 #SELECT2_CACHE_BACKEND = 'select2'
 
-JAZZMIN_SETTINGS = {
-    'show_ui_builder': True,
-    'navigation_expanded': False,
-    "changeform_format": "single",
-    'topmenu_links': [
-        # Url that gets reversed (Permissions can be added)
-        {'name': 'Home',  'url': 'admin:index', 'permissions': ['auth.view_user']},
-
-        # model admin to link to (Permissions checked against model)
-        {'model': 'auth.User'},
-
-        # App with dropdown menu to all its models pages (Permissions checked against models)
-        {'app': 'app1'},
-        {'name':'App1', 'url': 'index'}
-    ],
-}
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
-
-JAZZMIN_UI_TWEAKS = {
-    "navbar": "navbar-primary navbar-dark",
-    "no_navbar_border": True,
-    "body_small_text": False,
-    "navbar_small_text": False,
-    "sidebar_nav_small_text": False,
-    "accent": "accent-primary",
-    "sidebar": "sidebar-dark-primary",
-    "brand_colour": "navbar-primary",
-    "brand_small_text": False,
-    "sidebar_disable_expand": False,
-    "sidebar_nav_child_indent": True,
-    "sidebar_nav_compact_style": True,
-    "sidebar_nav_legacy_style": False,
-    "sidebar_nav_flat_style": False,
-    "footer_small_text": False
-}

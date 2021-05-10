@@ -4,12 +4,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
 <head>
 {% load static %}
+
 <link rel="stylesheet" href="{%static 'bootstrap.min.css' %}" >
 <link rel="stylesheet" href="{%static 'bootstrap-reboot.min.css' %}" >
 <link rel="stylesheet" href="{%static 'bootstrap-grid.min.css' %}" >
 <link rel='stylesheet' href="{%static 'pivot.min.css' %}">
 <link rel="stylesheet" href="{%static 'all.css' %}" >
-
+<link rel="stylesheet" href="{%static 'css/glyphicon.css' %}" >
+<link rel="stylesheet" href="{%static 'dc.min.css' %}" >
 
 <script src="{%static 'jquery-3.6.0.min.js' %}"></script>
 <script src="{%static 'jquery-ui.min.js' %}"></script>
@@ -20,10 +22,16 @@
 <script src="{%static 'select2.full.min.js' %}"></script>
 <script src="{%static 'plotly_renderers.min.js' %}"></script>
 <script src="{%static 'export_renderers.min.js' %}"></script>
+<script src="{%static 'd3.v6.min.js' %}"></script>
+<script src="{%static 'crossfilter.min.js' %}"></script>
+<script src="{%static 'dc.min.js' %}"></script>
+
 
 <link rel="stylesheet" href="{%static 'select2.min.css' %}" >
 <link rel="stylesheet" href="{% static 'select2-bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{%static 'custom.css' %}" >
+
+
 <nav class="navbar-sm navbar-expand-sm bg-dark navbar-dark">
 <ul class="navbar-nav">
 
@@ -45,7 +53,6 @@
 	<a class="dropdown-item" href="{% url 'wcgroupform' %}">WC Group</a>
 	<a class="dropdown-item" href="{% url 'routingform' %}">Routing</a>
 	<a class="dropdown-item" href="{% url 'fmodelform' %}">Fmodel</a>
-	<a class="dropdown-item" href="{% url 'soxcreate' %}">SO Create</a>
     </div>
     </li>
 
@@ -78,6 +85,7 @@
 <a class="dropdown-item" href="{% url 'lineupdate' %}">Line</a>
 <a class="dropdown-item" href="{% url 'materialupdate' %}">Material</a>
 <a class="dropdown-item" href="{% url 'bomupdate' %}">BOM</a>
+<a class="dropdown-item" href="{% url 'forecastupdate' %}">Forecaast</a>
 </li>
 <li class="nav-item dropdown">
 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Reports</a>
@@ -89,6 +97,7 @@
     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Graph</a>
     <div class="dropdown-menu pt-0 mt-0">
     <a class="dropdown-item" href="{% url 'plotly' %}">Viz</a>
+	<a class="dropdown-item" href="{% url 'forecastdata' %}">Forecast</a>
     </li>
 <li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Pivot</a>
@@ -109,9 +118,7 @@
 <li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Analysis</a>
     <div class="dropdown-menu pt-0 mt-0">
-    <a class="dropdown-item" href="{% url 'demo-eight' %}" target="_blank">SO</a>
 	<a class="dropdown-item" href="{% url 'forecast' %}">Forecast</a>
-	<a class="dropdown-item" href="{% url 'dashforecast' %}">Forecast Graph</a>
 	<a class="dropdown-item" href="{% url 'plan' %}">Plan</a>
 </li>
 

@@ -21,7 +21,7 @@ from django.conf.urls import url
 from .views import *
 from django_filters.views import FilterView
 from .autocomplete import *
-import dash
+#import dash
 from django.contrib.auth.decorators import login_required, permission_required
 admin.autodiscover()
 
@@ -46,11 +46,7 @@ urlpatterns = [
     path('routinglist/', RoutingList.as_view(), name='routinglist'),
     path('forecastlist/', ForecastList.as_view(), name='forecastlist'),
     path('fmodellist/', FmodelList.as_view(), name='fmodellist'),
-    path('planninglist/', PlanningList.as_view(), name='planninglist'),
-    
-    path('soxcreate/', CreateSoView.as_view(), name='soxcreate'),
-    path('soxupdate/', UpdateSoView.as_view(), name='soxupdate'),
-    
+    path('planninglist/', PlanningList.as_view(), name='planninglist'),   
     path('soform/', SoCreate, name='soform'),
     path('lineform/', LineCreate, name='lineform'),
     path('lineform/', LineCreate, name='lineform'),
@@ -69,6 +65,7 @@ urlpatterns = [
     path('productionupdate/', ProductionUpdate, name='productionupdate'),
     path('materialupdate', MaterialUpdate, name='materialupdate'),
     path('bomupdate', BOMUpdate, name='bomupdate'),
+    path('forecastupdate', ForecastUpdate, name='forecastupdate'),
     path('sodetail/<int:pk>', SoDetail.as_view(), name='sodetail'),
     path('productiondetail/<int:pk>', ProductionDetail.as_view(), name='productiondetail'),
     path('materialdetail/<int:pk>', MaterialDetail.as_view(), name='materialdetail'),
@@ -90,7 +87,9 @@ urlpatterns = [
     path('forecastdview/',forecastdview,name='forecastdview'),
     path('forecast/',forecast,name='forecast'),
     path('plan/',mps,name='plan'),
-    path('django_plotly_dash/', include('django_plotly_dash.urls')),
-    url('^demo-eight', session_state_view, {'template_name':'app1/dash.html'},name="demo-eight"),
-    url('dashforecast', forecast_view, {'template_name':'app1/dash.html'},name="dashforecast"),
+    path('forecastview/',forecast_view,name='forecastview'),
+    path('forecastdata/',forecast_data,name='forecastdata'),
+    #path('django_plotly_dash/', include('django_plotly_dash.urls')),
+    #url('^demo-eight', session_state_view, {'template_name':'app1/dash.html'},name="demo-eight"),
+    #url('dashforecast', forecast_view, {'template_name':'app1/dash.html'},name="dashforecast"),
 ]

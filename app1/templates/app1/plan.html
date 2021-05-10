@@ -10,49 +10,15 @@
 	<input class="btn-sm btn-primary" type="submit" name="Submit">
 </form>
 <form id="myForm" action="" class="form-group border-0 ml-3" method="post">
-{{ formset1.management_form }}
-    {% csrf_token %}
-	<table style="width:100%">
-	<tr>
-	<td>Month</td>
-	{% for form in formset1 %}
-	<td> {{ form.dem_month }} </td>
-	<td> {{ form.dem_month.errors }} </td>
-	{% endfor %}
-	</tr>
-	<tr>
-	<td>Forecast</td>
-	{% for form in formset1 %}
-	<td> {{ form.fore_qty }} </td>
-	<td> {{ form.fore_qty.errors }} </td>
-	{% endfor %}
-	</tr>
-	<tr>
-	<td>Override</td>
-	{% for form in formset1 %}
-	<td> {{ form.overr_qty }} </td>
-	<td> {{ form.overr_qty.errors }} </td>
-	{% endfor %}
-	</tr>
-	<tr>
-	{% for hidden in formset1.hidden_fields %}
-           {{ hidden }}
-	{% endfor %}
-	</tr>
-	<input class="btn-sm btn-primary" type="submit" name='forecast' value="Save Forecast">
-	</table>
-	</form>
-<table>
-<tr>
-<form id="myForm" action="" class="form-group border-0 ml-3" method="post">
-{{ formset.management_form }}
-    {% csrf_token %}
-	<td>MPS</td>
-	{% for form in formset %}
-	<td> {{ form.mps_qty }} </td>
-	{% endfor %}
-	</tr>
-	<input class="btn-sm btn-primary" type="submit" name='mps' value="Save MPS">
+{% csrf_token %}
+{% autoescape off %}
+{{df}}
+{% endautoescape %}
+<td><input class="btn-sm btn-primary" type="submit" name='df' value="Save DF"></td>
 </form>
-</table>
+
+<script>
+	$('td input').width(86);
+	</script>
 {% endblock %}
+

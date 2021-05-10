@@ -1,5 +1,6 @@
 {% extends "app1/base.html" %}
 {% load django_tables2 %}
+
 {% load bootstrap4 %}
 {% block content %}
 {{ filter.form.media }}
@@ -8,12 +9,14 @@
         {% bootstrap_form filter.form layout='inline' size='sm' class='form-control-sm mb-3 pl-3' %}
         {% bootstrap_button 'Filter' button_type='submit' size='sm' %}
 		</form>
-	<a class="btn btn-sm btn-outline-primary" href="{% querystring '_export'='xlsx' %}">Download Excel</a>
     {% endif %}
-
+	<div><a class="btn btn-sm btn-outline-primary" href="{% querystring '_export'='xlsx' %}">Download Excel</a></div>
       <table class="table thead-dark table-striped table-hover table-responsive-sm">
+
             {% render_table table %}
+
 			</table>
+
 <script>
 $.fn.select2.defaults.set( "width", '100%' );
 $.fn.select2.defaults.set( "theme", "bootstrap4" );

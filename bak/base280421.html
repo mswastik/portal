@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+<head>
+{% load static %}
+
+<link rel="stylesheet" href="{%static 'bootstrap.min.css' %}" >
+<link rel="stylesheet" href="{%static 'bootstrap-reboot.min.css' %}" >
+<link rel="stylesheet" href="{%static 'bootstrap-grid.min.css' %}" >
+<link rel='stylesheet' href="{%static 'pivot.min.css' %}">
+<link rel="stylesheet" href="{%static 'all.css' %}" >
+<link rel="stylesheet" href="{%static 'DataTables/DataTables-1.10.24/css/jquery.dataTables.min.css' %}" >
+<link rel="stylesheet" href="{%static 'DataTables/DataTables-1.10.24/css/dataTables.bootstrap4.css' %}" >
+<link rel="stylesheet" href="{%static 'bootstrap3-editable/css/bootstrap-editable.css' %}" >
+<link rel="stylesheet" href="{%static 'css/glyphicon.css' %}" >
+
+<script src="{%static 'jquery-3.6.0.min.js' %}"></script>
+<script src="{%static 'jquery-ui.min.js' %}"></script>
+<script src="{%static 'jquery.formset.js' %}"></script>
+<script src="{%static 'bootstrap.bundle.min.js' %}"></script>
+<script src="{%static 'plotly-basic-latest.min.js' %}"></script>
+<script src="{%static 'pivot.min.js' %}"></script>
+<script src="{%static 'select2.full.min.js' %}"></script>
+<script src="{%static 'plotly_renderers.min.js' %}"></script>
+<script src="{%static 'export_renderers.min.js' %}"></script>
+<script src="{%static 'DataTables/datatables.min.js' %}"></script>
+<script src="{%static 'DataTables/DataTables-1.10.24/js/jquery.dataTables.min.js' %}"></script>
+<script src="{%static 'bootstrap3-editable/js/bootstrap-editable.min.js' %}"></script>
+
+<link rel="stylesheet" href="{%static 'select2.min.css' %}" >
+<link rel="stylesheet" href="{% static 'select2-bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{%static 'custom.css' %}" >
+<style>
+  @font-face {
+    font-family: 'Glyphicons Halflings';
+    src: local('Glyphicons Halflings'),
+         url('{% static 'fonts/glyphicons-halflings-regular.eot' %} format("embedded-opentype")');
+  }
+</style>
+
+<nav class="navbar-sm navbar-expand-sm bg-dark navbar-dark">
+<ul class="navbar-nav">
+
+<li class="nav-items">
+<a class="nav-link" href="{% url 'index' %}">Home</a>
+</li>
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Create</a>
+    <div class="dropdown-menu pt-0 mt-0">
+    <a class="dropdown-item" href="{% url 'soform' %}">SO</a>
+	<a class="dropdown-item" href="{% url 'speedform' %}">Speed</a>
+	<a class="dropdown-item" href="{% url 'lineform' %}">Line</a>
+	<a class="dropdown-item" href="{% url 'productionform' %}">Production</a>
+	<a class="dropdown-item" href="{% url 'dispatchform' %}">Dispatch</a>
+	<a class="dropdown-item" href="{% url 'customerform' %}">Customer</a>
+	<a class="dropdown-item" href="{% url 'bomform' %}">BOM</a>
+	<a class="dropdown-item" href="{% url 'materialform' %}">Material</a>
+	<a class="dropdown-item" href="{% url 'wcgroupform' %}">WC Group</a>
+	<a class="dropdown-item" href="{% url 'routingform' %}">Routing</a>
+	<a class="dropdown-item" href="{% url 'fmodelform' %}">Fmodel</a>
+    </div>
+    </li>
+
+<li class="nav-item dropdown">
+<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">View</a>
+<div class="dropdown-menu pt-0 mt-0">
+<a class="dropdown-item" href="{% url 'solist' %}">SO List</a>
+<a class="dropdown-item" href="{% url 'planlist' %}">Plan List</a>
+<a class="dropdown-item" href="{% url 'speedlist' %}">Speed List</a>
+<a class="dropdown-item" href="{% url 'linelist' %}">Line List</a>
+<a class="dropdown-item" href="{% url 'materiallist' %}">Material List</a>
+<a class="dropdown-item" href="{% url 'bomlist' %}">BOM List</a>
+<a class="dropdown-item" href="{% url 'productionlist' %}">Production List</a>
+<a class="dropdown-item" href="{% url 'dispatchlist' %}">Dispatch List</a>
+<a class="dropdown-item" href="{% url 'customerlist' %}">Customer List</a>
+<a class="dropdown-item" href="{% url 'wcgrouplist' %}">WC Group List</a>
+<a class="dropdown-item" href="{% url 'routinglist' %}">Routing List</a>
+<a class="dropdown-item" href="{% url 'forecastlist' %}">Forecast List</a>
+<a class="dropdown-item" href="{% url 'fmodellist' %}">Forecast Model List</a>
+<a class="dropdown-item" href="{% url 'planninglist' %}">Planning List</a>
+</div>
+</li>
+
+<li class="nav-item dropdown">
+<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Update</a>
+<div class="dropdown-menu pt-0 mt-0">
+<a class="dropdown-item" href="{% url 'soupdate' %}">SO</a>
+<a class="dropdown-item" href="{% url 'dispatchupdate' %}">Dispatch</a>
+<a class="dropdown-item" href="{% url 'productionupdate' %}">Production</a>
+<a class="dropdown-item" href="{% url 'lineupdate' %}">Line</a>
+<a class="dropdown-item" href="{% url 'materialupdate' %}">Material</a>
+<a class="dropdown-item" href="{% url 'bomupdate' %}">BOM</a>
+</li>
+<li class="nav-item dropdown">
+<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Reports</a>
+<div class="dropdown-menu pt-0 mt-0">
+<a class="dropdown-item" href="{% url 'matreq' %}">Material Required</a>
+<a class="dropdown-item" href="{% url 'openso' %}">Open SO</a>
+</li>
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Graph</a>
+    <div class="dropdown-menu pt-0 mt-0">
+    <a class="dropdown-item" href="{% url 'plotly' %}">Viz</a>
+    </li>
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Pivot</a>
+    <div class="dropdown-menu pt-0 mt-0">
+    <a class="dropdown-item" href="{% url 'sopivot' %}">SO</a>
+    <a class="dropdown-item" href="{% url 'prodpivot' %}">Production</a>
+    <a class="dropdown-item" href="{% url 'planpivot' %}">Plan</a>
+    <a class="dropdown-item" href="{% url 'matreqpivot' %}">Material</a>
+	<a class="dropdown-item" href="{% url 'fmodelpivot' %}">Forecast Model</a>
+    </li>
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Dtale</a>
+    <div class="dropdown-menu pt-0 mt-0">
+    <a class="dropdown-item" href="{% url 'sodview' %}" target="_blank">SO</a>
+	<a class="dropdown-item" href="{% url 'forecastdview' %}" target="_blank">Forecast</a>
+</li>
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-toggle="dropdown">Analysis</a>
+    <div class="dropdown-menu pt-0 mt-0">
+    <a class="dropdown-item" href="{% url 'demo-eight' %}" target="_blank">SO</a>
+	<a class="dropdown-item" href="{% url 'forecast' %}">Forecast</a>
+	<a class="dropdown-item" href="{% url 'dashforecast' %}">Forecast Graph</a>
+	<a class="dropdown-item" href="{% url 'plan' %}">Plan</a>
+</li>
+
+<li class="nav-items">
+<a class="nav-link" href="/admin/">Admin</a>
+</li>
+
+</ul>
+</nav>
+</head>
+<body>
+
+{% block content %}
+{% endblock %}
+
+</body>
+</html>
