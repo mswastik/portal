@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     'reversion',
     'tabular_permissions',
     'django.contrib.admin',
-    'django_plotly_dash.apps.DjangoPlotlyDashConfig',
 ]
 
 MIDDLEWARE = [

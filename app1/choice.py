@@ -19,6 +19,7 @@ category_choices = (("Toothpaste", "Toothpaste"),
                     ("Odomos", "Odomos"),
                     ("Denture Adhesive", "Denture Adhesive"),
                     ("Shaving Cream", "Shaving Cream"),
+                    ("Loose", "Loose"),
 )
 
 curr_choices = (

@@ -7,49 +7,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <div class="row">
 
-<form method="post">
-    {% csrf_token %}
-    <button class="btn btn-primary mt-3 ml-3" type="submit" name="savemodel">Save Model</button>
+<form action="" class="form-group border-0 mt-3 ml-3" method="post">
+ {% csrf_token %}
+	<input type='text' class='ml-3' name='code'></input>
+	<input class="btn-sm btn-primary" type="submit" name="Submit">
 </form>
-
-<form method="post">
-    {% csrf_token %}
-    <button class="btn btn-primary mt-3 ml-3" type="submit" name="genforecast1">Generate Forecast</button>
-</form>
-
-<form method="post">
-    {% csrf_token %}
-    <button class="btn btn-primary mt-3 ml-3" type="submit" name="expforecast1">Explore Forecast</button>
-</form>
-
-{% if graph %}
-	<div class="alert alert-primary mt-3 ml-3" role="alert"> {{code}} sMAPE : {{smape}}% MAE: {{mae}} MASE: {{mase}}</strong></div>
-	{% endif %}
+<p class="lead ml-3 mt-3">{{code}}</p>
 </div>
 
-<div class="row">
-{{ graph1|safe }}
+<div class="row ml-4">
 {{ graph|safe }}
-{{ vis | safe}}
+{{ graph1|safe }}
 </div>
-{% autoescape off %}
-{{kk}}
-{{ev}}
-{{ev1}}
-{% endautoescape %}
-<div class="row table table-sm ml-5">
-{% autoescape off %}
-{{df}}
-{% endautoescape %}
-</div>
-<div class="row">
-{% if filter %}
-<form method="get" class="form-group form-inline mb-2 mt-2">
-        {% for field in filter.form %}
-		{% bootstrap_field field layout="inline" size='sm'%}
-		{% endfor %}
-        <input class="btn-sm btn-primary" type="submit" name="Submit">
-    </form>
-{% endif %}
-</div>
+
 {% endblock %}

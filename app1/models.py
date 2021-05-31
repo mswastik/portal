@@ -55,6 +55,7 @@ class So(models.Model):
     currency = models.CharField(max_length=3,choices=curr_choices,blank=True,null=True)
     customer = models.ForeignKey(Customer,on_delete=models.SET_NULL,null=True)
     remarks = models.CharField(max_length=45,blank=True,null=True)
+    prod_comp = models.BooleanField()
     def __str__(self):              # __unicode__ on Python 2
         return '{} - {} - {}'.format(self.so,self.code,self.so_qty)
     def get_absolute_url(self):

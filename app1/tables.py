@@ -53,6 +53,8 @@ class DispatchFilter(django_filters.FilterSet):
     so__code__desc = django_filters.CharFilter(lookup_expr='icontains')
     so__code__bus_category = django_filters.ChoiceFilter(choices=bus_cat_choices)
     so__code__prod_category = django_filters.ChoiceFilter(choices=category_choices)
+    so__so_del_date__gte = django_filters.DateFilter(field_name='so__so_del_date',lookup_expr='gte',widget=DateInput())
+    so__so_del_date__lte = django_filters.DateFilter(field_name='so__so_del_date',lookup_expr='lte',widget=DateInput())
     class Meta:
         model = Dispatch
         exclude= ('so')

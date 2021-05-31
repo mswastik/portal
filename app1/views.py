@@ -96,7 +96,7 @@ def SpeedCreate(request):
 
 @permission_required("app1.add_production",login_url='/accounts/login/')  
 def ProductionCreate(request):
-    ProductionFormset = modelformset_factory(Production,fields=('__all__'),extra=10,widgets={'date':DateInput,'so': autocomplete.ModelSelect2(url='openso-autocomplete')})
+    ProductionFormset = modelformset_factory(Production,fields=('__all__'),extra=10,widgets={'date':DateInput,'so': autocomplete.ModelSelect2(url='openprodso-ac')})
     helper = ProductionForm.helper
     if request.method == 'POST':
         formset = ProductionFormset(request.POST)
@@ -221,7 +221,7 @@ def FmodelCreate(request):
 
 @permission_required("app1.change_so",login_url='/accounts/login/')  
 def SoUpdate(request):
-    fields=('so','code','so_date','so_del_date','so_qty','closed','remarks')
+    fields=('so','code','so_date','so_del_date','so_qty','closed','remarks','prod_comp')
     SoUpFormset = modelformset_factory(So,fields=fields,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),
                                         'so_date':DateInput,'so_del_date':DateInput},can_delete=True,extra=0)
     helper = SoForm1.helper
@@ -734,7 +734,6 @@ def planpivot(request):
     df = df.to_html(table_id="input",index=False)
     context = {'df': df}
     return render(request, "app1/pivot.html", context)
-    
 
 def sodview(request):
     qs = So.objects.all()
@@ -755,11 +754,6 @@ def sodview(request):
     
 def forecastdview(request):
     qs = So.objects.all()
-    #ff=[f.name for f in So._meta.get_fields()]
-    #ff.extend(['code__'+k.name for k in Material._meta.get_fields()]) #Get field names of related models also
-    #ff.extend(['code__forecast__dem_month','code__forecast__fore_qty__avg'])
-    #tt=['production','dispatch','plan','commit_disp_date','act_disp_qty','currency','code__rate','code__uom','code__customer','code__cbm','code__lead_time','code__des_code','code__cust_code']
-    #ff=[ele for ele in ff if ele not in tt]
     ff=['id','so_del_date','code_id__code','code_id__desc','so_qty']
     df = read_frame(qs,fieldnames=ff,coerce_float=True,index_col='id')
     df['so_del_date'] = pd.to_datetime(df['so_del_date'])
@@ -796,110 +790,10 @@ def openso(request):
     table = SoTable1(f.qs)
     RequestConfig(request, paginate={'per_page': 25, 'page': 1}).configure(table)
     return render(request, "app1/list.html", {"table": table,"filter":f})
-    
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-import dash_table
-import dash_bootstrap_components as dbc
-from django_plotly_dash import DjangoDash
 
-def session_state_view(request, template_name, **kwargs):
-    external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-    app = DjangoDash('DjangoSessionState',add_bootstrap_links=True,external_stylesheets=external_stylesheets)
-    qs = So.objects.all()
-    ff=[f.name for f in So._meta.get_fields()]
-    ff.extend(['code__'+k.name for k in Material._meta.get_fields()])
-    ff.extend(['code__routing__wcgrp__wcgrp','code__routing__wcgrp__cap'])
-    for i in ['code__so','code__id','act_disp_date','commit_disp_date','currency','act_disp_qty','rate','production','dispatch','plan','code',
-            'code__des_code','code__customer','code__bom_ccode','code__stock','code__routing','code__rate','code__uom','code__lead_time','code__classification','code__cust_code','code__cbm','remarks','code__gr_wt','code__speed','code__bom']:
-        ff.remove(i)
-    df = read_frame(qs,fieldnames=ff,coerce_float=True,index_col='id')
-    df['so_del_date']=pd.to_datetime(df['so_del_date'],format='%Y-%m-%d')
-    df['so_date']=pd.to_datetime(df['so_date'],format='%Y-%m-%d')
-    df.rename(columns={'code__routing__wcgrp__wcgrp':'wc','code__routing__wcgrp__cap':'cap'},inplace=True)
-    df['shift']=df['so_qty']*df['code__case_size']/df['cap']/8/0.68
-    app.layout = html.Div([dbc.Row([
-            dbc.Col(dcc.Dropdown(
-            id='frequency', options=[{'label':i,'value':i} for i in ['D','W','M']],value='M')),
-            dbc.Col(dcc.Dropdown(
-            id='date',options=[{'label':i,'value':i} for i in ['so_date','so_del_date']], value='so_del_date')),
-            dcc.DatePickerRange(id='daterange',start_date=df['so_date'].min(),end_date=df['so_del_date'].max(),calendar_orientation='vertical',persisted_props=[df['so_date'].min(),df['so_del_date'].max()])  
-            ],className='mr-3 mt-3'),
-        dcc.Graph(id='graph-with-slider'),
-        dash_table.DataTable(
-            id='datatable-interactivity',
-            columns=[
-                {"name": i, "id": i, "deletable": True, "selectable": True} for i in df.columns
-            ],
-            data=df.to_dict('records'),
-            style_cell={'fontSize':17},
-            locale_format={'so_date':'datetime'},
-            filter_action="native",
-            sort_action="native",
-            sort_mode="multi",
-            page_action="native",
-            page_current= 0,
-            page_size= 20,
-    ),
-    ])
-    @app.callback(
-         dash.dependencies.Output('graph-with-slider', 'figure'),
-        [dash.dependencies.Input('frequency', 'value'),
-         dash.dependencies.Input('date', 'value'),
-         dash.dependencies.Input('daterange', 'start_date'),
-         dash.dependencies.Input('daterange', 'end_date')]
-        )
-    def callback_color(freq_value,date,startdate,enddate):
-        fdf=df[df[date]>startdate]
-        fdf=fdf[fdf[date]<enddate]
-        fdf.set_index(date,inplace=True)
-        fdf=fdf.groupby([pd.Grouper(freq=freq_value),'wc']).agg('sum')
-        fdf.reset_index(inplace=True)
-        fdf.set_index(date,inplace=True)
-        fig = px.bar(fdf,y="shift",facet_row="wc",height=900)
-        for annotation in fig['layout']['annotations']: 
-            annotation['textangle']= 0
-        fig.update_yaxes(matches=None)
-        fig.update_layout(transition_duration=500)
-        return fig
-    
-    @app.callback(
-        dash.dependencies.Output('datatable-interactivity','data'),
-        [dash.dependencies.Input('graph-with-slider', 'clickData'),
-          dash.dependencies.Input('date', 'value'),
-          dash.dependencies.Input('frequency', 'value')]
-        )
-    def on_trace_click(click_data,date,freq):
-        """Listen to click events and update table, passing filtered rows"""
-        p = click_data['points'][0]
-        key=pd.to_datetime(0)
-        if 'x' in p:
-            key = pd.to_datetime(p['x'])
-        df_f = get_corresponding_rows(df, key,date,freq)
-        return df_f.to_dict('records')
-
-    def get_corresponding_rows(df, my_key,date,freq):
-        """Filter df, return rows that match my_key"""
-        ret = pd.DataFrame()
-        if freq=='M':
-            ret = df.loc[(df[date].dt.month == my_key.month) & (df[date].dt.year == my_key.year)]
-        elif freq=='W':
-            ret= df.loc[(df[date].dt.week == my_key.week) & (df[date].dt.week == my_key.week)]
-        else:
-            ret= df.loc[df[date] == my_key]
-        return ret
-        
-    return render(request, template_name=template_name,)
- 
-import json
-from django.http import JsonResponse
 import datetime
 from dateutil import relativedelta 
-from django.http import HttpResponse
-from django.http import FileResponse
-from bson import json_util
-from bson.json_util import dumps
+
 def forecast_data(request):
     qs = So.objects.all()
     fo = Forecast.objects.all()
@@ -907,8 +801,6 @@ def forecast_data(request):
     df = read_frame(qs,fieldnames=ff,coerce_float=True,index_col='id')
     df['so_del_date']=pd.to_datetime(df['so_del_date'])
     code=df['code__code'].unique()
-    #df.set_index('so_del_date',inplace=True)
-    #df=df.resample('M').sum()
     df=df.groupby(['code__code','code__bus_category','code__prod_category',pd.Grouper(freq='M',key='so_del_date')]).agg({"so_qty":np.sum})
     df=df.reset_index()
     foc= ['dem_month','fore_qty','code__code','code__desc','month']
@@ -920,11 +812,42 @@ def forecast_data(request):
     json_projects = data
     return render(request,'app1/dc.html',{'data':json_projects,'code':code})
 
+from pycaret.regression import *
 def forecast_view(request):
-    return render(request, 'app1/dc.html')
+    form=MaterialUnique()
+    graph,graph1={},{}
+    cont1=''
+    if request.method == 'POST' and 'code' in request.POST:
+        form=MaterialUnique(request.POST)
+        uni = request.POST.getlist('code')[0]
+        fore_q=Forecast.objects.filter(code_id__code=uni,month=pd.to_datetime(datetime.date.today()- MonthBegin(n=1))).order_by('dem_month','version')
+        so_q=So.objects.filter(code_id__code=uni).all()
+        for_df = read_frame(fore_q,fieldnames=['dem_month','fore_qty'],coerce_float=True)
+        so_df = read_frame(so_q,fieldnames=['so_del_date','so_qty','rate'],coerce_float=True)
+        so_df['so_del_date']=pd.to_datetime(so_df['so_del_date'])
+        so_df=so_df.groupby(pd.Grouper(freq='M',key='so_del_date')).agg({"so_qty":np.sum, 'rate':np.mean})
+        so_df.reset_index(inplace=True)
+        for_df['type'] = 'forecast'
+        so_df['type'] = 'actual'
+        sod=so_df.copy()
+        sod.set_index('so_del_date',inplace=True)
+        from .script import simple_fe
+        sod=simple_fe(sod)
+        cc=Material.objects.filter(code=uni).values()
+        cont1=cc[0]['code']+' - '+cc[0]['desc']
+        reg = load_model('forecast/'+str(cc[0]['id']))
+        pred=predict_model(reg,sod)
+        sod['pred']=pred['Label']
+        tt = px.scatter(data_frame=sod,x='pred', y='so_qty')
+        fig1 = go.Figure(data=tt)
+        graph = fig1.to_html(full_html=False,default_height=350,default_width=500,config={'editable':False,'edits':{'shapePosition':True}})
+        so_df.rename(columns={'so_del_date':'dem_month','so_qty':'fore_qty'},inplace=True)
+        for_df=for_df.append(so_df)
+        kk = px.line(data_frame=for_df, x='dem_month', y='fore_qty',color='type')
+        fig = go.Figure(data=kk)
+        graph1 = fig.to_html(full_html=False,default_height=350,default_width=700,config={'editable':False,'edits':{'shapePosition':True}})
+    return render(request, 'app1/forecast1.html',{'graph':graph,'graph1':graph1,'code':cont1})
 
-    
-    
 def forecast(request):
     import datetime
     from dateutil import relativedelta

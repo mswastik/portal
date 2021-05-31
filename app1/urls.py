@@ -28,6 +28,7 @@ admin.autodiscover()
 urlpatterns = [
     path('', index, name='index'),
     url(r'^openso-autocomplete/$',OpensoAutocomplete.as_view(),name='openso-autocomplete',),
+    url(r'^openprodso-ac/$',OpenprodsoAutocomplete.as_view(),name='openprodso-ac',),
     url(r'^so-autocomplete/$',SoAutocomplete.as_view(),name='so-autocomplete',),
     url(r'^so-autocomplete1/$',SoAutocomplete1.as_view(),name='so-autocomplete1',),
     url(r'^material-autocomplete/$',MaterialAutocomplete.as_view(),name='material-autocomplete',),
