@@ -60,8 +60,8 @@ class DispatchFilter(django_filters.FilterSet):
         exclude= ('so')
         
 class ProductionFilter(django_filters.FilterSet):
-    prod_date_gt = django_filters.DateFilter(field_name='prod_date', lookup_expr='gte',widget=DateInput())
-    prod_date_lt = django_filters.DateFilter(field_name='prod_date', lookup_expr='lte',widget=DateInput())
+    date_gt = django_filters.DateFilter(field_name='date', lookup_expr='gte',widget=DateInput())
+    date_lt = django_filters.DateFilter(field_name='date', lookup_expr='lte',widget=DateInput())
     #customer = django_filters.CharFilter(lookup_expr='icontains')
     so__so = django_filters.CharFilter(lookup_expr='icontains')
     so__code__code = django_filters.CharFilter(lookup_expr='icontains')
@@ -130,6 +130,7 @@ class SoTable(tables.Table):
         #fields = ('so','so_date','so_del_date','qty','fgcode')
         exclude = ('currency','remarks','rate','id','act_disp_date')
         attrs = {'class': 'table table-sm'}
+        order_by=('-so_del_date','so')
     so = tables.Column(linkify={"viewname":"sodetail", "args":[A("pk")]})
     code = tables.Column(footer="Total of all pages:")
     so_qty = SummingColumn()
@@ -277,8 +278,10 @@ class ProductionTable(tables.Table):
         model = Production
         exclude = ('id',)
         attrs = {'class': 'table table-sm'}
+        order_by = '-date'
     so = tables.Column(linkify={"viewname":"productiondetail", "args":[A("pk")]})
     prod_qty = SummingColumn()
+    date=tables.Column(order_by=("date",))
 
 class PlanTable(tables.Table):
     class Meta:

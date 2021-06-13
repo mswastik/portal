@@ -5,8 +5,8 @@
 {% block content %}
 {{ filter.form.media }}
     {% if filter %}
-    <form action="" method="get" class="form-group form-control-sm ml-4 mr-3 mt-2 mb-2 form-inline">
-        {% bootstrap_form filter.form layout='inline' size='sm' class='form-control-sm mb-3 pl-3' %}
+    <form action="" method="get" class="form-group form-control-sm ml-4 mr-3 mt-2 form-inline">
+        {% bootstrap_form filter.form layout='inline' size='sm' class='form-control-sm pl-3 row-fluid' %}
         {% bootstrap_button 'Filter' button_type='submit' size='sm' %}
 		</form>
     {% endif %}

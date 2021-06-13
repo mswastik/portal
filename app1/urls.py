@@ -78,6 +78,7 @@ urlpatterns = [
     path('fmodeldetail/<int:pk>', FmodelDetail, name='fmodeldetail'),
     path('matreq', matreq, name='matreq'),
     path('openso', openso, name='openso'),
+    path('soprod', soprod, name='soprod'),
     path('plotly/', visualization, name='plotly'),
     path('sopivot/', sopivot, name='sopivot'),
     path('fmodelpivot/', fmodelpivot, name='fmodelpivot'),

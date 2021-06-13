@@ -96,7 +96,7 @@ def SpeedCreate(request):
 
 @permission_required("app1.add_production",login_url='/accounts/login/')  
 def ProductionCreate(request):
-    ProductionFormset = modelformset_factory(Production,fields=('__all__'),extra=10,widgets={'date':DateInput,'so': autocomplete.ModelSelect2(url='openprodso-ac')})
+    ProductionFormset = modelformset_factory(Production,fields=('__all__'),extra=13,widgets={'date':DateInput,'so': autocomplete.ModelSelect2(url='openprodso-ac')})
     helper = ProductionForm.helper
     if request.method == 'POST':
         formset = ProductionFormset(request.POST)
@@ -221,7 +221,7 @@ def FmodelCreate(request):
 
 @permission_required("app1.change_so",login_url='/accounts/login/')  
 def SoUpdate(request):
-    fields=('so','code','so_date','so_del_date','so_qty','closed','remarks','prod_comp')
+    fields=('so','code','so_date','so_del_date','so_qty','closed','remarks')
     SoUpFormset = modelformset_factory(So,fields=fields,widgets={'code':autocomplete.ModelSelect2(url='product-autocomplete'),
                                         'so_date':DateInput,'so_del_date':DateInput},can_delete=True,extra=0)
     helper = SoForm1.helper
@@ -706,11 +706,11 @@ def prodpivot(request):
     df = pd.merge(df,df2,how='left',left_on=['so_id'],right_on=['id'])
     pr = Material.objects.values()
     df3 = pd.DataFrame(pr)
-    df = pd.merge(df,df3,how='left',left_on=['fgcode_id'],right_on=['id'])
+    df = pd.merge(df,df3,how='left',left_on=['code_id'],right_on=['id'])
     ll = Line.objects.values()
     df4 = pd.DataFrame(ll)
     df = pd.merge(df,df4,how='left',left_on=['line_id'],right_on=['id'])
-    df.pop('rate')
+    #df.pop('rate')
     df.pop('micro')
     #df = df.to_json(orient='values',date_format='iso')
     df = df.to_html(table_id="input",index=False)
@@ -785,6 +785,14 @@ def matreq(request):
 def openso(request):
     qs= So.objects.filter(closed=False).annotate(production_sum=Sum('production__prod_qty')
     ,dispatch_sum=Subquery(Dispatch.objects.filter(so=OuterRef('pk')).values('so').annotate(the_sum=Sum('dis_qty'),).values('the_sum')[:1]))
+    f = SoFilter(request.GET, queryset=qs)
+    paginate_by = 25
+    table = SoTable1(f.qs)
+    RequestConfig(request, paginate={'per_page': 25, 'page': 1}).configure(table)
+    return render(request, "app1/list.html", {"table": table,"filter":f})
+
+def soprod(request):
+    qs= So.objects.annotate(production_sum=Sum('production__prod_qty'),dispatch_sum=Subquery(Dispatch.objects.filter(so=OuterRef('pk')).values('so').annotate(the_sum=Sum('dis_qty'),).values('the_sum')[:1]))
     f = SoFilter(request.GET, queryset=qs)
     paginate_by = 25
     table = SoTable1(f.qs)
